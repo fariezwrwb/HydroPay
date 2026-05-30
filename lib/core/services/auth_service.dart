@@ -50,4 +50,12 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }
+
+
+// Method untuk hapus session saat logout:
+static Future<void> clearSession() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('token');
+  await prefs.remove('role');
+}
 }
