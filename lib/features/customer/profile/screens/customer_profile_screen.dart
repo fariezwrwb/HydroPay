@@ -5,6 +5,8 @@ import '../../../../core/services/api_service.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../routes/app_routes.dart';
 import '../../../auth/controllers/auth_controller.dart';
+import '../../../../views/widget/customer_bottom_navbar.dart';
+import '../../../auth/screens/login_screen.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
@@ -43,33 +45,262 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
     }
   }
 
+  void _showEditProfile() {
+    final nameC = TextEditingController(text: _profileData?['name'] ?? '');
+    final phoneC = TextEditingController(text: _profileData?['phone'] ?? '');
+    final addressC = TextEditingController(text: _profileData?['address'] ?? '');
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+            top: 24,
+            left: 24,
+            right: 24,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Edit Profil',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _editField(
+                label: 'Nama Lengkap',
+                controller: nameC,
+                icon: Icons.person_outline,
+              ),
+              const SizedBox(height: 14),
+              _editField(
+                label: 'Nomor Telepon',
+                controller: phoneC,
+                icon: Icons.phone_outlined,
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 14),
+              _editField(
+                label: 'Alamat',
+                controller: addressC,
+                icon: Icons.location_on_outlined,
+                maxLines: 2,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          setModalState(() => isSaving = true);
+                          try {
+                            final id = _profileData?['id'];
+                            final res = await ApiService.patch(
+                              '${ApiConstants.customers}/$id',
+                              {
+                                'name': nameC.text.trim(),
+                                'phone': phoneC.text.trim(),
+                                'address': addressC.text.trim(),
+                                'customer_number':
+                                    _profileData?['customer_number'] ?? '',
+                                'service_id':
+                                    _profileData?['service_id'] ?? 0,
+                              },
+                            );
+                            if (!mounted) return;
+                            Navigator.pop(ctx);
+                            if (res['success'] == true) {
+                              await _fetchProfile();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Profil berhasil diperbarui'),
+                                  backgroundColor: AppColors.success,
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(res['message'] ??
+                                      'Gagal memperbarui'),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error: $e'),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          } finally {
+                            setModalState(() => isSaving = false);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2.5),
+                        )
+                      : const Text(
+                          'Simpan Perubahan',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w700),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _logout() async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Keluar'),
-        content: const Text('Apakah kamu yakin ingin keluar?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal',
-                style: TextStyle(color: AppColors.neutral)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Keluar',
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.logout_rounded,
+                  color: AppColors.error,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Keluar Akun',
                 style: TextStyle(
-                    color: AppColors.error, fontWeight: FontWeight.bold)),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Apakah kamu yakin ingin keluar dari akun HydroPay saat ini?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 46,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.divider),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Batal',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 46,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.error,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Keluar',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
 
     if (confirm == true && mounted) {
       await context.read<AuthController>().logout();
-      Navigator.pushNamedAndRemoveUntil(
-          context, AppRoutes.login, (route) => false);
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
+      }
     }
   }
 
@@ -77,6 +308,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      bottomNavigationBar: const CustomerBottomNavbar(currentIndex: 2),
       body: SafeArea(
         child: _isLoading
             ? const Center(
@@ -90,8 +322,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                             color: AppColors.error, size: 48),
                         const SizedBox(height: 12),
                         Text(_errorMessage!,
-                            style:
-                                const TextStyle(color: AppColors.textSecondary)),
+                            style: const TextStyle(
+                                color: AppColors.textSecondary)),
                         const SizedBox(height: 16),
                         TextButton(
                           onPressed: _fetchProfile,
@@ -109,6 +341,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   Widget _buildContent() {
     final name = _profileData?['name'] ?? '-';
     final customerNumber = _profileData?['customer_number'] ?? '-';
+    final avatarUrl = _profileData?['avatar'];
 
     return RefreshIndicator(
       color: AppColors.primary,
@@ -117,9 +350,9 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-            // Top Bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -148,10 +381,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 16),
-
-            // Profile Image (Avatar)
             Container(
               width: 96,
               height: 96,
@@ -160,18 +390,21 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 border: Border.all(color: AppColors.primary, width: 3),
                 color: AppColors.neutralLight,
               ),
-              child: const ClipOval(
-                child: Icon(
-                  Icons.person,
-                  size: 56,
-                  color: AppColors.neutral,
-                ),
+              child: ClipOval(
+                child: avatarUrl != null
+                    ? Image.network(
+                        avatarUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(
+                            Icons.person,
+                            size: 56,
+                            color: AppColors.neutral),
+                      )
+                    : const Icon(Icons.person,
+                        size: 56, color: AppColors.neutral),
               ),
             ),
-
             const SizedBox(height: 14),
-
-            // Name & ID Pelanggan
             Text(
               name,
               style: const TextStyle(
@@ -184,14 +417,9 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
             Text(
               'ID Pelanggan: $customerNumber',
               style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
+                  fontSize: 14, color: AppColors.textSecondary),
             ),
-
             const SizedBox(height: 32),
-
-            // Menu Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
@@ -213,7 +441,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                       iconBg: AppColors.primary.withOpacity(0.12),
                       iconColor: AppColors.primary,
                       label: 'Pengaturan Akun',
-                      onTap: () {},
+                      onTap: _showEditProfile,
                     ),
                     _divider(),
                     _menuTile(
@@ -235,10 +463,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
-
-            // Logout Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
@@ -264,10 +489,44 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 40),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _editField({
+    required String label,
+    required TextEditingController controller,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
+        filled: true,
+        fillColor: AppColors.background,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: AppColors.divider),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: AppColors.divider),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
   }

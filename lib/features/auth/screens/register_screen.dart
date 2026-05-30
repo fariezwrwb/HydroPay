@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
-import '../../../core/widgets/custom_button.dart';
-import '../../../core/widgets/custom_text_field.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../routes/app_routes.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -21,6 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordC = TextEditingController();
   bool _obscurePassword = true;
   bool _agreeTerms = false;
+  String _selectedRole = 'ADMIN'; 
 
   @override
   void dispose() {
@@ -31,45 +29,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    if (!_agreeTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Anda harus menyetujui Syarat & Ketentuan'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    final controller = context.read<AuthController>();
-    final success = await controller.register(
-      username: _usernameC.text.trim(),
-      password: _passwordC.text,
-      name: _nameC.text.trim(),
-      phone: _phoneC.text.trim(),
+ Future<void> _submit() async {
+  if (!_formKey.currentState!.validate()) return;
+  if (!_agreeTerms) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Anda harus menyetujui Syarat & Ketentuan'),
+        backgroundColor: Colors.orange,
+      ),
     );
-
-    if (!mounted) return;
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Registrasi berhasil! Silakan login.'),
-          backgroundColor: Color(0xFF22C55E),
-        ),
-      );
-      Navigator.pushReplacementNamed(context, AppRoutes.login);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(controller.errorMessage ?? 'Registrasi gagal'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    return;
   }
+
+
+ 
+
+
+  final controller = context.read<AuthController>();
+  final success = await controller.register(
+    username: _usernameC.text.trim(),
+    password: _passwordC.text,
+    name: _nameC.text.trim(),
+    phone: _phoneC.text.trim(),
+    role: _selectedRole, 
+  );
+
+  if (!mounted) return;
+
+  if (success) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Registrasi berhasil! Silakan login.'),
+        backgroundColor: Color(0xFF22C55E),
+      ),
+    );
+    Navigator.pushReplacementNamed(context, AppRoutes.login);
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(controller.errorMessage ?? 'Registrasi gagal'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +102,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 12),
-                  // Title Section
                   const Text(
                     'Buat Akun',
                     style: TextStyle(
@@ -118,9 +120,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       height: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 32),
+                 
+                  const SizedBox(height: 20),
 
-                  // Nama Lengkap
+             
                   _buildLabel('Nama Lengkap'),
                   const SizedBox(height: 6),
                   _buildTextField(
@@ -130,30 +133,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Username (Email style dari UI)
                   _buildLabel('Username'),
                   const SizedBox(height: 6),
                   _buildTextField(
                     controller: _usernameC,
                     hint: 'Masukkan username',
-                    keyboardType: TextInputType.text,
-                    validator: (v) => v!.isEmpty ? 'Username wajib diisi' : null,
+                    validator: (v) =>
+                        v!.isEmpty ? 'Username wajib diisi' : null,
                   ),
                   const SizedBox(height: 16),
 
-                  // Nomor Telepon
                   _buildLabel('Nomor Telepon'),
                   const SizedBox(height: 6),
                   _buildPhoneField(),
                   const SizedBox(height: 16),
 
-                  // Password
                   _buildLabel('Password'),
                   const SizedBox(height: 6),
                   _buildPasswordField(),
                   const SizedBox(height: 20),
 
-                  // Checkbox Terms
+              
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -207,7 +207,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 28),
 
-                  // Daftar Button
+               
                   SizedBox(
                     width: double.infinity,
                     height: 52,
@@ -241,7 +241,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Login Link
+               
                   Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -255,7 +255,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         GestureDetector(
                           onTap: () => Navigator.pushReplacementNamed(
-                              context, AppRoutes.login),
+                            context,
+                            AppRoutes.login,
+                          ),
                           child: const Text(
                             'Masuk',
                             style: TextStyle(
@@ -278,6 +280,75 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  
+  Widget _roleCard({
+    required String role,
+    required IconData icon,
+    required String label,
+    required String desc,
+  }) {
+    final isSelected = _selectedRole == role;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedRole = role),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF2563EB).withOpacity(0.08)
+              : Colors.white.withOpacity(0.85),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF2563EB)
+                : const Color(0xFFCBDCEC),
+            width: isSelected ? 2 : 1.2,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFF8E8E93),
+                  size: 24,
+                ),
+                if (isSelected)
+                  const Icon(
+                    Icons.check_circle,
+                    color: Color(0xFF2563EB),
+                    size: 18,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: isSelected
+                    ? const Color(0xFF2563EB)
+                    : const Color(0xFF1C1C1E),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              desc,
+              style: const TextStyle(fontSize: 11, color: Color(0xFF8E8E93)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  
   Widget _buildLabel(String text) {
     return Text(
       text,
@@ -302,14 +373,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       style: const TextStyle(fontSize: 14, color: Color(0xFF0D1B2A)),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(
-          color: Color(0xFFAEC6DE),
-          fontSize: 14,
-        ),
+        hintStyle: const TextStyle(color: Color(0xFFAEC6DE), fontSize: 14),
         filled: true,
         fillColor: Colors.white.withOpacity(0.85),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: Color(0xFFCBDCEC), width: 1.2),
@@ -345,8 +415,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         hintStyle: const TextStyle(color: Color(0xFFAEC6DE), fontSize: 14),
         filled: true,
         fillColor: Colors.white.withOpacity(0.85),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         prefixIcon: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           margin: const EdgeInsets.only(right: 8),
@@ -400,8 +472,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         hintStyle: const TextStyle(color: Color(0xFFAEC6DE), fontSize: 14),
         filled: true,
         fillColor: Colors.white.withOpacity(0.85),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         suffixIcon: IconButton(
           icon: Icon(
             _obscurePassword
@@ -410,8 +484,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             color: const Color(0xFF94A3B8),
             size: 20,
           ),
-          onPressed: () =>
-              setState(() => _obscurePassword = !_obscurePassword),
+          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),

@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
 
-class PaymentModel extends StatefulWidget {
-  const PaymentModel({super.key});
+class PaymentModel extends ChangeNotifier {
+  bool _isLoading = false;
+  String _errorMessage = '';
+  Map<String, dynamic> _paymentDetails = {};
 
-  @override
-  State<PaymentModel> createState() => _PaymentModelState();
-}
+  bool get isLoading => _isLoading;
+  String get errorMessage => _errorMessage;
+  Map<String, dynamic> get paymentDetails => _paymentDetails;
 
-class _PaymentModelState extends State<PaymentModel> {
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
+  void setLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
+
+  Future<void> processPayment() async {
+    setLoading(true);
+    _errorMessage = '';
+    
+    try {
+      await Future.delayed(const Duration(seconds: 1));
+    } catch (e) {
+      _errorMessage = 'Gagal memproses pembayaran: $e';
+    } finally {
+      setLoading(false);
+    }
   }
 }

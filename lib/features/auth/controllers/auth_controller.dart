@@ -13,14 +13,21 @@ class AuthController extends ChangeNotifier {
     required String password,
     required String name,
     required String phone,
+    String role = 'ADMIN', 
   }) async {
     isLoading = true;
     errorMessage = null;
     notifyListeners();
 
     try {
+    
+      if (role == 'CUSTOMER') {
+        errorMessage = 'Akun customer dibuat oleh Admin. Silakan login.';
+        return false;
+      }
+
       final res = await ApiService.post(
-        ApiConstants.register,
+        ApiConstants.register, 
         {
           'username': username,
           'password': password,

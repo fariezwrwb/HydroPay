@@ -4,6 +4,7 @@ import '../controllers/customer_controller.dart';
 import '../models/customer_model.dart';
 import '../screens/customer_form_screen.dart';
 import '../../../../routes/app_routes.dart';
+import '../../../../views/widget/admin_bottom_navbar.dart';
 
 class CustomerListScreen extends StatefulWidget {
   const CustomerListScreen({super.key});
@@ -13,7 +14,7 @@ class CustomerListScreen extends StatefulWidget {
 }
 
 class _CustomerListScreenState extends State<CustomerListScreen> {
-  int _selectedNav = 1; // Customers aktif
+// Customers aktif
 
   @override
   void initState() {
@@ -23,20 +24,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     });
   }
 
-  void _onNavTap(int index) {
-    setState(() => _selectedNav = index);
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, AppRoutes.adminBills);
-        break;
-      case 3:
-        // Analytics
-        break;
-    }
-  }
+  
 
   Future<void> _confirmDelete(BuildContext context, CustomerModel c) async {
     final ctrl = context.read<CustomerController>();
@@ -199,7 +187,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                           ),
                         ),
             ),
-            _buildBottomNav(),
+         
           ],
         ),
       ),
@@ -218,7 +206,12 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
         shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white),
       ),
+      
+      bottomNavigationBar: const AdminBottomNavbar(
+  currentIndex: 2,
+),
     );
+    
   }
 
   // ─── TOP BAR ──────────────────────────────────────────────
@@ -245,7 +238,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
               ),
               const SizedBox(width: 10),
               const Text(
-                'Verifikasi Pelanggan',
+                ' fikasi Pelanggan',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 15,
@@ -649,73 +642,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     );
   }
 
-  // ─── BOTTOM NAV ───────────────────────────────────────────
-  Widget _buildBottomNav() {
-    final items = [
-      {'icon': Icons.home_rounded, 'label': 'Home'},
-      {'icon': Icons.people_rounded, 'label': 'Customers'},
-      {'icon': Icons.receipt_long_rounded, 'label': 'Bills'},
-      {'icon': Icons.bar_chart_rounded, 'label': 'Analytics'},
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(items.length, (i) {
-              final isSelected = i == _selectedNav;
-              return GestureDetector(
-                onTap: () => _onNavTap(i),
-                child: Container(
-                  color: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 6),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        items[i]['icon'] as IconData,
-                        size: 22,
-                        color: isSelected
-                            ? const Color(0xFF2563EB)
-                            : const Color(0xFFCBDCEC),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        items[i]['label'] as String,
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          color: isSelected
-                              ? const Color(0xFF2563EB)
-                              : const Color(0xFFCBDCEC),
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
-    );
-  }
+  
 }
 
 // ─── KTP PATTERN PAINTER ──────────────────────────────────────
