@@ -29,7 +29,7 @@ class ServiceController extends ChangeNotifier {
     }
   }
 
-  Future<bool> create(Map<String, String> payload) async {
+  Future<bool> create(Map<String, dynamic> payload) async {
     isLoading = true;
     notifyListeners();
     try {
@@ -49,7 +49,7 @@ class ServiceController extends ChangeNotifier {
     }
   }
 
-  Future<bool> update(int id, Map<String, String> payload) async {
+  Future<bool> update(int id, Map<String, dynamic> payload) async {
     isLoading = true;
     notifyListeners();
     try {

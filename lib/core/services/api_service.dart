@@ -4,16 +4,11 @@ import '../constants/api_constants.dart';
 import 'auth_service.dart';
 
 class ApiService {
-  static Future<Map<String, String>> _headers({bool withToken = false}) async {
+  static Future<Map<String, String>> _headers({bool withToken = true}) async {
     final headers = <String, String>{
       'Content-Type': 'application/json',
+      'app-key': 'cede99000e4669efd1c71a60e189ac61db29db03',
     };
-
-    final ownerToken = await AuthService.getOwnerToken();
-    if (ownerToken != null) {
-      headers['app-key'] = ownerToken;
-    }
-
 
     if (withToken) {
       final token = await AuthService.getToken();
@@ -42,7 +37,7 @@ class ApiService {
   static Future<Map<String, dynamic>> post(
     String endpoint,
     Map<String, dynamic> body, {
-    bool withToken = false,
+    bool withToken = true,
   }) async {
     final res = await http.post(
       _uri(endpoint),
@@ -76,14 +71,12 @@ class ApiService {
     return jsonDecode(res.body);
   }
 
-  // Khusus upload file (multipart) untuk payment proof
   static Future<Map<String, dynamic>> postMultipart(
     String endpoint, {
     required Map<String, String> fields,
     required String filePath,
     required String fileField,
   }) async {
-    final ownerToken = await AuthService.getOwnerToken();
     final token = await AuthService.getToken();
 
     final request = http.MultipartRequest(
@@ -91,7 +84,7 @@ class ApiService {
       _uri(endpoint),
     );
 
-    if (ownerToken != null) request.headers['app-key'] = ownerToken;
+    request.headers['app-key'] = 'cede99000e4669efd1c71a60e189ac61db29db03';
     if (token != null) request.headers['Authorization'] = 'Bearer $token';
 
     request.fields.addAll(fields);

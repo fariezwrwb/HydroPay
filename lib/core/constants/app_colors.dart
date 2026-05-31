@@ -27,5 +27,19 @@ class AppColors {
   static const Color textPrimary = Color(0xFF1C1C1E);   
   static const Color textSecondary = Color(0xFF8E8E93); 
   static const Color textOnPrimary = Color(0xFFFFFFFF);
-  static const Color divider = Color(0xFFE5E5EA);        
+  static const Color divider = Color(0xFFE5E5EA); 
+
+  static const Color navy = Color(0xFF1E2B3C);
+  static const Color blue = Color(0xFF2563EB);
+  static const Color blueLight = Color(0xFFEFF6FF);
+  static const Color green = Color(0xFF22C55E);
+  static const Color greenLight = Color(0xFFF0FDF4);
+  static const Color amber = Color(0xFFF59E0B);
+  static const Color slate900 = Color(0xFF0D1B2A);
+  static const Color slate600 = Color(0xFF5A7A99);
+  static const Color slate400 = Color(0xFF94A3B8);
+  static const Color slate200 = Color(0xFFCBDCEC);
+  static const Color slate100 = Color(0xFFF1F5F9);
+  static const Color bgPage = Color(0xFFF0F4F8);
+  static const Color white = Colors.white;   
 }

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/service_controller.dart';
 import '../models/service_model.dart';
+import '../../../../../../core/constants/app_colors.dart';
 
 class ServiceFormScreen extends StatefulWidget {
-  final ServiceModel? service; // null = tambah baru, isi = edit
+  final ServiceModel? service;
 
   const ServiceFormScreen({super.key, this.service});
 
@@ -46,11 +47,12 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final ctrl = context.read<ServiceController>();
+    
     final payload = {
       'name': _nameC.text.trim(),
-      'min_usage': _minUsageC.text.trim(),
-      'max_usage': _maxUsageC.text.trim(),
-      'price': _priceC.text.trim(),
+      'min_usage': int.parse(_minUsageC.text.trim()),
+      'max_usage': int.parse(_maxUsageC.text.trim()),
+      'price': int.parse(_priceC.text.trim()),
     };
 
     bool success;
@@ -65,9 +67,11 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_isEdit
-              ? 'Layanan berhasil diperbarui'
-              : 'Layanan berhasil ditambahkan'),
+          content: Text(
+            _isEdit
+                ? 'Layanan berhasil diperbarui'
+                : 'Layanan berhasil ditambahkan',
+          ),
           backgroundColor: const Color(0xFF22C55E),
         ),
       );
@@ -89,20 +93,25 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E2B3C),
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
         elevation: 0,
-        title: Text(
-          _isEdit ? 'Edit Layanan' : 'Tambah Layanan',
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
+        scrolledUnderElevation: 0,
+        shape: const Border(
+          bottom: BorderSide(
+            color: Color(0xFFE2E8F0),
+            width: 1,
           ),
         ),
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_ios_rounded, size: 18),
+        titleSpacing: 0,
+        title: Text(
+          _isEdit ? 'Edit Layanan' : 'Tambah Layanan',
+          style: TextStyle(
+            color: AppColors.slate900,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
+        centerTitle: false,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -112,19 +121,20 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 4),
-              // Info header
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: const Color(0xFFBFDBFE), width: 1),
+                  border: Border.all(color: const Color(0xFFBFDBFE), width: 1),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline_rounded,
-                        color: Color(0xFF2563EB), size: 18),
+                    const Icon(
+                      Icons.info_outline_rounded,
+                      color: Color(0xFF2563EB),
+                      size: 18,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -142,8 +152,6 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Nama Layanan
               _buildLabel('Nama Layanan'),
               const SizedBox(height: 6),
               _buildField(
@@ -154,8 +162,6 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
                     v!.isEmpty ? 'Nama layanan wajib diisi' : null,
               ),
               const SizedBox(height: 16),
-
-              // Min & Max Usage (row)
               Row(
                 children: [
                   Expanded(
@@ -171,8 +177,7 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
                           prefixIcon: Icons.arrow_downward_rounded,
                           validator: (v) {
                             if (v!.isEmpty) return 'Wajib diisi';
-                            if (int.tryParse(v) == null)
-                              return 'Angka saja';
+                            if (int.tryParse(v) == null) return 'Angka saja';
                             return null;
                           },
                         ),
@@ -193,8 +198,7 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
                           prefixIcon: Icons.arrow_upward_rounded,
                           validator: (v) {
                             if (v!.isEmpty) return 'Wajib diisi';
-                            if (int.tryParse(v) == null)
-                              return 'Angka saja';
+                            if (int.tryParse(v) == null) return 'Angka saja';
                             return null;
                           },
                         ),
@@ -204,8 +208,6 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-
-              // Harga
               _buildLabel('Harga per m³ (Rp)'),
               const SizedBox(height: 6),
               _buildField(
@@ -220,8 +222,6 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
                 },
               ),
               const SizedBox(height: 32),
-
-              // Submit button
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -230,7 +230,8 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     elevation: 0,
                   ),
                   child: ctrl.isLoading
@@ -238,7 +239,9 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2.5),
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
                         )
                       : Text(
                           _isEdit ? 'Simpan Perubahan' : 'Tambah Layanan',
@@ -250,8 +253,6 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
                         ),
                 ),
               ),
-
-              // Hapus button (hanya saat edit)
               if (_isEdit) ...[
                 const SizedBox(height: 12),
                 SizedBox(
@@ -265,48 +266,57 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
                               context: context,
                               builder: (_) => AlertDialog(
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16)),
-                                title: const Text('Hapus Layanan',
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700)),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                title: const Text(
+                                  'Hapus Layanan',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                                 content: const Text(
-                                    'Yakin ingin menghapus layanan ini?'),
+                                  'Yakin ingin menghapus layanan ini?',
+                                ),
                                 actions: [
                                   TextButton(
                                     onPressed: () =>
                                         Navigator.pop(context, false),
-                                    child: const Text('Batal',
-                                        style: TextStyle(
-                                            color: Color(0xFF94A3B8))),
+                                    child: const Text(
+                                      'Batal',
+                                      style: TextStyle(
+                                        color: Color(0xFF94A3B8),
+                                      ),
+                                    ),
                                   ),
                                   ElevatedButton(
                                     onPressed: () =>
                                         Navigator.pop(context, true),
                                     style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            const Color(0xFFEF4444)),
-                                    child: const Text('Hapus',
-                                        style:
-                                            TextStyle(color: Colors.white)),
+                                      backgroundColor: const Color(0xFFEF4444),
+                                    ),
+                                    child: const Text(
+                                      'Hapus',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
                                   ),
                                 ],
                               ),
                             );
                             if (confirm == true && mounted) {
-                              final ok = await ctrl
-                                  .delete(widget.service!.id);
+                              final ok = await ctrl.delete(widget.service!.id);
                               if (mounted) {
                                 if (ok) {
                                   Navigator.pop(context, true);
                                 } else {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(
-                                    content: Text(ctrl.errorMessage ??
-                                        'Gagal menghapus'),
-                                    backgroundColor:
-                                        const Color(0xFFEF4444),
-                                  ));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        ctrl.errorMessage ?? 'Gagal menghapus',
+                                      ),
+                                      backgroundColor: const Color(0xFFEF4444),
+                                    ),
+                                  );
                                 }
                               }
                             }
@@ -314,7 +324,8 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFEF4444)),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: const Text(
                       'Hapus Layanan',
@@ -360,39 +371,35 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
       style: const TextStyle(fontSize: 14, color: Color(0xFF0D1B2A)),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle:
-            const TextStyle(color: Color(0xFFAEC6DE), fontSize: 13),
+        hintStyle: const TextStyle(color: Color(0xFFAEC6DE), fontSize: 13),
         prefixIcon: prefixIcon != null
             ? Icon(prefixIcon, size: 18, color: const Color(0xFF94A3B8))
             : null,
         filled: true,
         fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 13,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-              const BorderSide(color: Color(0xFFCBDCEC), width: 1.2),
+          borderSide: const BorderSide(color: Color(0xFFCBDCEC), width: 1.2),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-              const BorderSide(color: Color(0xFFCBDCEC), width: 1.2),
+          borderSide: const BorderSide(color: Color(0xFFCBDCEC), width: 1.2),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-              const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+          borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-              const BorderSide(color: Color(0xFFEF4444), width: 1.2),
+          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-              const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
         ),
       ),
     );

@@ -28,7 +28,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CustomerController()),
         ChangeNotifierProvider(create: (_) => AdminDashboardController()),
         ChangeNotifierProvider(create: (_) => CustomerDashboardController()),
-        ChangeNotifierProvider(create: (_) => PaymentModel()), 
+        //  Sudah diganti dari PaymentModel() menjadi PaymentController()
+        ChangeNotifierProvider(create: (_) => PaymentController()), 
       ],
       child: MaterialApp(
         title: 'PDAM App',
@@ -69,7 +70,7 @@ class _SplashRouterState extends State<SplashRouter> {
       if (role == 'ADMIN') {
         Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
       } else {
-        Navigator.pushReplacementNamed(context, AppRoutes.customerDashboard); // ← ke dashboard
+        Navigator.pushReplacementNamed(context, AppRoutes.customerDashboard);
       }
     } else {
       Navigator.pushReplacementNamed(context, AppRoutes.register);
