@@ -37,10 +37,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (role != null) {
      if (role == 'ADMIN') {
-  Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
-} else {
-  Navigator.pushReplacementNamed(context, AppRoutes.customerDashboard); 
-}
+        Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
+      } else {
+        Navigator.pushReplacementNamed(context, AppRoutes.customerDashboard); 
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

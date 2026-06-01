@@ -69,8 +69,8 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
         SnackBar(
           content: Text(
             _isEdit
-                ? 'Layanan berhasil diperbarui'
-                : 'Layanan berhasil ditambahkan',
+                ? 'Bill berhasil diperbarui'
+                : 'Bill berhasil ditambahkan',
           ),
           backgroundColor: const Color(0xFF22C55E),
         ),
@@ -104,7 +104,7 @@ class _ServiceFormScreenState extends State<ServiceFormScreen> {
         ),
         titleSpacing: 0,
         title: Text(
-          _isEdit ? 'Edit Layanan' : 'Tambah Layanan',
+          _isEdit ? 'Edit Bill' : 'Tambah Bill',
           style: TextStyle(
             color: AppColors.slate900,
             fontWeight: FontWeight.bold,

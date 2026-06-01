@@ -1,8 +1,8 @@
+import 'package:aya_ikbal/features/admin/services/controllers/service_controller.dart';
+import 'package:aya_ikbal/features/admin/services/models/service_model.dart';
+import 'package:aya_ikbal/features/admin/services/screens/service_form_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../controllers/service_controller.dart';
-import '../models/service_model.dart';
-import '../screens/service_form_screen.dart';
 import '../../../../routes/app_routes.dart';
 import 'package:intl/intl.dart';
 import '../../../../../../views/widget/admin_bottom_navbar.dart';
@@ -216,7 +216,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
       ),
-      bottomNavigationBar: const AdminBottomNavbar(currentIndex: 1), 
+      bottomNavigationBar: const AdminBottomNavbar(currentIndex: 3), 
     );
   }
 

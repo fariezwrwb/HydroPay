@@ -33,7 +33,7 @@ class ServiceController extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
     try {
-      final res = await ApiService.post(ApiConstants.services, payload);
+      final res = await ApiService.post(ApiConstants.bills, payload);
       if (res['success'] == true) {
         await fetchAll();
         return true;
@@ -53,7 +53,7 @@ class ServiceController extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
     try {
-      final res = await ApiService.patch('${ApiConstants.services}/$id', payload);
+      final res = await ApiService.patch('${ApiConstants.bills}/$id', payload);
       if (res['success'] == true) {
         await fetchAll();
         return true;
@@ -73,7 +73,7 @@ class ServiceController extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
     try {
-      final res = await ApiService.delete('${ApiConstants.services}/$id');
+      final res = await ApiService.delete('${ApiConstants.bills}/$id');
       if (res['success'] == true) {
         await fetchAll();
         return true;

@@ -1,3 +1,4 @@
+import 'package:aya_ikbal/features/admin/bills/controllers/bill_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/services/auth_service.dart';
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => ServiceController()),
+        ChangeNotifierProvider(create: (_) => BillController()),
         ChangeNotifierProvider(create: (_) => CustomerController()),
         ChangeNotifierProvider(create: (_) => AdminDashboardController()),
         ChangeNotifierProvider(create: (_) => CustomerDashboardController()),
