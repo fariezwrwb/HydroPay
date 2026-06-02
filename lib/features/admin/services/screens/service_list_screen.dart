@@ -215,7 +215,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
         child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
       ),
-      bottomNavigationBar: const AdminBottomNavbar(currentIndex: 3), 
+      bottomNavigationBar: const AdminBottomNavbar(currentIndex: 1),
     );
   }
 
