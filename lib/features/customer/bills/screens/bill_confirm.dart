@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
 import 'controllers/payment_controller.dart';
 import 'bill_success_screen.dart';
 
@@ -13,7 +14,45 @@ class BillConfirmScreen extends StatefulWidget {
 }
 
 class _BillConfirmScreenState extends State<BillConfirmScreen> {
-  String _selectedMethod = 'HydroPay Balance';
+  String _selectedMethod = 'Bank Transfer';
+  String? _selectedFilePath;
+  String? _fileName;
+
+  Future<void> _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png'],
+    );
+
+    if (result != null) {
+      final file = result.files.single;
+      final extension = file.extension?.toLowerCase();
+
+      if (extension == 'jpg' || extension == 'jpeg' || extension == 'png') {
+        setState(() {
+          _selectedFilePath = file.path;
+          _fileName = file.name;
+        });
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Hanya file JPG, JPEG, atau PNG yang diizinkan'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  // Ambil bill ID dengan fallback ke beberapa kemungkinan field name
+  int? get _billId {
+    final raw = widget.bill['id'] ?? widget.bill['bill_id'] ?? widget.bill['_id'];
+    if (raw == null) return null;
+    if (raw is int) return raw;
+    return int.tryParse(raw.toString());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,87 +67,241 @@ class _BillConfirmScreenState extends State<BillConfirmScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0061C9)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Konfirmasi Bayar', style: TextStyle(color: Color(0xFF0061C9), fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text(
+          'Konfirmasi Bayar',
+          style: TextStyle(
+            color: Color(0xFF0061C9),
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Detail Tagihan ───────────────────────────────────────────
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Tagihan Air', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B))),
+                      const Text(
+                        'Tagihan Air',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: const Color(0xFFDBEAFE), borderRadius: BorderRadius.circular(4)),
-                        child: Text('#${widget.bill['id'] ?? '256374'}', style: const TextStyle(color: Color(0xFF1E40AF), fontSize: 10, fontWeight: FontWeight.bold)),
-                      )
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDBEAFE),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '#${_billId ?? '-'}',
+                          style: const TextStyle(
+                            color: Color(0xFF1E40AF),
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  _buildSummaryRow('Periode', widget.bill['month'] ?? 'Juni 2026'),
-                  _buildSummaryRow('Nomor Pelanggan', widget.bill['customer_id'].toString()),
-                  _buildSummaryRow('Pemakaian', '${widget.bill['usage'] ?? '0'} m³'),
+                  _buildSummaryRow('Periode', _getPeriod()),
+                  _buildSummaryRow(
+                    'Nomor Pelanggan',
+                    widget.bill['customer_id']?.toString() ?? '-',
+                  ),
+                  _buildSummaryRow(
+                    'Pemakaian',
+                    '${widget.bill['usage_value'] ?? 25} m³',
+                  ),
                   const Divider(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Total Pembayaran', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                      Text('Rp ${widget.bill['total_price'] ?? '0'}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0061C9), fontSize: 16)),
+                      const Text(
+                        'Total Pembayaran',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      Text(
+                        'Rp ${_formatNumber(widget.bill['price'] ?? 0)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0061C9),
+                          fontSize: 16,
+                        ),
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            const Text('Metode Pembayaran', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF64748B))),
-            const SizedBox(height: 12),
-            _buildMethodCard('HydroPay Balance', 'Saldo: Rp 5.250.000', Icons.account_balance_wallet_rounded),
+
+            // ── Metode Pembayaran ────────────────────────────────────────
+            const Text(
+              'Metode Pembayaran',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: Color(0xFF64748B),
+              ),
+            ),
             const SizedBox(height: 12),
             _buildMethodCard('Bank Transfer', 'BCA, Mandiri, BNI, BRI', Icons.account_balance_rounded),
+            const SizedBox(height: 12),
+            _buildMethodCard('QRIS', 'Scan QRIS', Icons.qr_code_scanner_rounded),
             const SizedBox(height: 24),
+
+            // ── Upload Bukti ─────────────────────────────────────────────
+            const Text(
+              'Upload Bukti Pembayaran',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: Color(0xFF64748B),
+              ),
+            ),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: _pickFile,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: _selectedFilePath != null
+                        ? const Color(0xFF0061C9)
+                        : const Color(0xFFE2E8F0),
+                    width: _selectedFilePath != null ? 1.5 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: _selectedFilePath != null
+                            ? const Color(0xFFDBEAFE)
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        _selectedFilePath != null
+                            ? Icons.check_circle_outline_rounded
+                            : Icons.upload_file,
+                        color: const Color(0xFF0061C9),
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Pilih File',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            _fileName ?? 'Upload bukti transfer (JPEG/PNG)',
+                            style: TextStyle(
+                              color: _selectedFilePath != null
+                                  ? const Color(0xFF0061C9)
+                                  : const Color(0xFF64748B),
+                              fontSize: 12,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: Color(0xFF0061C9)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.lock_outline_rounded, size: 14, color: Color(0xFF94A3B8)),
                 SizedBox(width: 6),
-                Text('Pembayaran aman dengan enkripsi', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                Text(
+                  'Pembayaran aman dengan enkripsi',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                ),
               ],
             ),
             const SizedBox(height: 16),
+
+            // ── Tombol Bayar ─────────────────────────────────────────────
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: ctrl.isLoading
-                    ? null
-                    : () async {
-                        final ok = await context.read<PaymentController>().payBill(
-                              int.parse(widget.bill['id'].toString()),
+                onPressed: ctrl.isLoading || _selectedFilePath == null || _billId == null
+    ? null
+    : () async {
+        // Tambah ini
+        print('=== DEBUG BILL ===');
+        print('Full bill data: ${widget.bill}');
+        print('Bill ID yang dikirim: $_billId');
+        
+        final ok = await context.read<PaymentController>().payBill(
+                              _billId!,
                               _selectedMethod,
+                              _selectedFilePath!,
                             );
                         if (ok && mounted) {
                           Navigator.pushAndRemoveUntil(
                             context,
-                            MaterialPageRoute(builder: (_) => BillSuccessScreen(bill: widget.bill, method: _selectedMethod)),
+                            MaterialPageRoute(
+                              builder: (_) => BillSuccessScreen(
+                                bill: widget.bill,
+                                method: _selectedMethod,
+                              ),
+                            ),
                             (route) => route.isFirst,
                           );
                         } else if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(ctrl.errorMessage ?? 'Gagal membayar'), backgroundColor: Colors.red),
+                            SnackBar(
+                              content: Text(ctrl.errorMessage ?? 'Gagal membayar'),
+                              backgroundColor: Colors.red,
+                            ),
                           );
                         }
                       },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0061C9),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  disabledBackgroundColor: const Color(0xFFCBD5E1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   elevation: 0,
                 ),
                 child: ctrl.isLoading
@@ -116,17 +309,38 @@ class _BillConfirmScreenState extends State<BillConfirmScreen> {
                     : const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('Bayar Sekarang', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                          Text(
+                            'Bayar Sekarang',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
                           SizedBox(width: 8),
                           Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
                         ],
                       ),
               ),
             ),
+            const SizedBox(height: 32),
           ],
         ),
       ),
     );
+  }
+
+  String _getPeriod() {
+    final month = widget.bill['month'];
+    final year = widget.bill['year'];
+    const months = [
+      '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    if (month != null && year != null) {
+      return '${months[month]} $year';
+    }
+    return '-';
   }
 
   Widget _buildSummaryRow(String label, String val) {
@@ -136,14 +350,21 @@ class _BillConfirmScreenState extends State<BillConfirmScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
-          Text(val, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13, fontWeight: FontWeight.w500)),
+          Text(
+            val,
+            style: const TextStyle(
+              color: Color(0xFF1E293B),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildMethodCard(String id, String subtitle, IconData icon) {
-    bool isSelected = _selectedMethod == id;
+    final isSelected = _selectedMethod == id;
     return GestureDetector(
       onTap: () => setState(() => _selectedMethod = id),
       child: Container(
@@ -151,13 +372,19 @@ class _BillConfirmScreenState extends State<BillConfirmScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: isSelected ? const Color(0xFF0061C9) : const Color(0xFFE2E8F0), width: isSelected ? 1.5 : 1),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF0061C9) : const Color(0xFFE2E8F0),
+            width: isSelected ? 1.5 : 1,
+          ),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(10),
+              ),
               child: Icon(icon, color: const Color(0xFF0061C9), size: 22),
             ),
             const SizedBox(width: 14),
@@ -165,8 +392,18 @@ class _BillConfirmScreenState extends State<BillConfirmScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(id, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 14)),
-                  Text(subtitle, style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                  Text(
+                    id,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                  ),
                 ],
               ),
             ),
@@ -175,12 +412,27 @@ class _BillConfirmScreenState extends State<BillConfirmScreen> {
               height: 18,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: isSelected ? const Color(0xFF0061C9) : const Color(0xFFCBD5E1), width: isSelected ? 5 : 1.5),
+                border: Border.all(
+                  color: isSelected ? const Color(0xFF0061C9) : const Color(0xFFCBD5E1),
+                  width: isSelected ? 5 : 1.5,
+                ),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatNumber(int number) {
+    String str = number.toString();
+    String result = '';
+    int count = 0;
+    for (int i = str.length - 1; i >= 0; i--) {
+      result = str[i] + result;
+      count++;
+      if (count % 3 == 0 && i != 0) result = '.$result';
+    }
+    return result;
   }
 }

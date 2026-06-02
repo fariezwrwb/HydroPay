@@ -5,7 +5,7 @@ import '../models/bill_model.dart';
 import '../../customers/controllers/customer_controller.dart';
 
 class BillFormScreen extends StatefulWidget {
-  final BillModel? bill; // null = tambah baru, isi = edit
+  final BillModel? bill; 
 
   const BillFormScreen({super.key, this.bill});
 
@@ -32,7 +32,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
   @override
   void initState() {
     super.initState();
-    // Load daftar customer untuk dropdown
+  
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CustomerController>().fetchAll();
     });
@@ -60,7 +60,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
     bool success;
 
     if (_isEdit) {
-      // UPDATE: payload month, year, measurement_number, usage_value
+
       success = await ctrl.update(
         widget.bill!.id,
         month: _selectedMonth,
@@ -69,8 +69,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
         usageValue: int.parse(_usageC.text.trim()),
       );
     } else {
-      // CREATE: payload customer_id, month, year,
-      //         measurement_number, usage_value
+  
       success = await ctrl.create(
         customerId: _selectedCustomerId!,
         month: _selectedMonth,
@@ -195,7 +194,6 @@ class _BillFormScreenState extends State<BillFormScreen> {
             children: [
               const SizedBox(height: 4),
 
-              // Info box
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -226,7 +224,7 @@ class _BillFormScreenState extends State<BillFormScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Customer (hanya saat tambah baru)
+           
               if (!_isEdit) ...[
                 _buildLabel('Customer'),
                 const SizedBox(height: 6),

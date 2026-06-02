@@ -100,7 +100,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
     final ctrl = context.watch<CustomerController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // Slate 50 background
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(
           isEdit ? 'Ubah Data Pelanggan' : 'Tambah Pelanggan Baru',
@@ -126,13 +126,12 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Keterangan Header Halaman
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF), // Blue 50
+                  color: const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFFDBEAFE)),
                 ),
@@ -152,7 +151,6 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                 ),
               ),
 
-              // SECTION: KREDENSIAL AKUN (Hanya muncul jika TAMBAH DATA baru)
               if (!isEdit) ...[
                 _buildSectionTitle('Informasi Akun Login'),
                 Container(
@@ -186,7 +184,6 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                 const SizedBox(height: 20),
               ],
 
-              // SECTION: BIODATA & DETAIL PELANGGAN
               _buildSectionTitle('Profil & Detail Meteran'),
               Container(
                 padding: const EdgeInsets.all(16),
@@ -244,14 +241,13 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
               ),
               const SizedBox(height: 32),
 
-              // TOMBOL SUBMIT SIMPAN / TAMBAH
               SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
                   onPressed: ctrl.isLoading ? null : _submit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB), // Tailwind Blue 600
+                    backgroundColor: const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
                     disabledBackgroundColor: const Color(0xFF94A3B8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -278,7 +274,6 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
     );
   }
 
-  // Widget Pembantu untuk Membuat Judul Section Form
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
@@ -287,13 +282,12 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
         style: const TextStyle(
           fontSize: 14, 
           fontWeight: FontWeight.bold, 
-          color: Color(0xFF475569) // Slate 600
+          color: Color(0xFF475569)
         ),
       ),
     );
   }
 
-  // Widget Input Field Reusable Modern Berlabel Atas (Floating/Bordered Layout)
   Widget _buildField({
     required String label,
     required String hint,
@@ -324,7 +318,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
             hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
             prefixIcon: Icon(icon, color: const Color(0xFF94A3B8), size: 20),
             filled: true,
-            fillColor: const Color(0xFFF8FAFC), // Background input abu-abu halus (Slate 50)
+            fillColor: const Color(0xFFF8FAFC),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

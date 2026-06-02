@@ -78,7 +78,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle
             Container(
               width: 40,
               height: 4,
@@ -106,7 +105,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Edit
             ListTile(
               onTap: () async {
                 Navigator.pop(context);
@@ -143,7 +141,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
 
             const Divider(height: 1, color: Color(0xFFE2E8F0)),
 
-            // Hapus
             ListTile(
               onTap: () {
                 Navigator.pop(context);
@@ -255,7 +252,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     );
   }
 
-  // ─── TOP BAR ────────────────────────────────────────────────────
   Widget _buildTopBar() {
     return Container(
       decoration: const BoxDecoration(
@@ -317,7 +313,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     );
   }
 
-  // ─── STAT ROW ───────────────────────────────────────────────────
   Widget _buildStatRow(int total, int today) {
     return Row(
       children: [
@@ -364,7 +359,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     );
   }
 
-  // ─── CUSTOMER CARD ──────────────────────────────────────────────
   Widget _buildCustomerCard(
     BuildContext context,
     CustomerModel c, {
@@ -399,13 +393,11 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header ─────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 8, 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Avatar
                 Container(
                   width: 44,
                   height: 44,
@@ -429,7 +421,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Name & date
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -447,7 +438,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                     ],
                   ),
                 ),
-                // Badge + titik 3
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -483,7 +473,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
             ),
           ),
 
-          // ── KTP Photo ──────────────────────────────────────
           Container(
             height: 160,
             margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -594,7 +583,6 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
             ),
           ),
 
-          // ── Info chips ─────────────────────────────────────
           Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -611,64 +599,61 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
 
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
 
-       
-Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-  child: Row(
-    children: [
-      // Hapus
-      Expanded(
-        child: OutlinedButton.icon(
-          onPressed: () => _confirmDelete(context, c),
-          icon: const Icon(Icons.delete_outline_rounded,
-              size: 16, color: Color(0xFFEF4444)),
-          label: const Text('Hapus',
-              style: TextStyle(
-                  color: Color(0xFFEF4444),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600)),
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Color(0xFFEF4444)),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-            padding: const EdgeInsets.symmetric(vertical: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _confirmDelete(context, c),
+                    icon: const Icon(Icons.delete_outline_rounded,
+                        size: 16, color: Color(0xFFEF4444)),
+                    label: const Text('Hapus',
+                        style: TextStyle(
+                            color: Color(0xFFEF4444),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600)),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFEF4444)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CustomerFormScreen(customer: c),
+                        ),
+                      );
+                      if (result == true && mounted) {
+                        context.read<CustomerController>().fetchAll();
+                      }
+                    },
+                    icon: const Icon(Icons.edit_outlined,
+                        size: 16, color: Colors.white),
+                    label: const Text('Edit',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
-      const SizedBox(width: 10),
-      // Edit
-      Expanded(
-        child: ElevatedButton.icon(
-          onPressed: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => CustomerFormScreen(customer: c),
-              ),
-            );
-            if (result == true && mounted) {
-              context.read<CustomerController>().fetchAll();
-            }
-          },
-          icon: const Icon(Icons.edit_outlined,
-              size: 16, color: Colors.white),
-          label: const Text('Edit',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF2563EB),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-          ),
-        ),
-      ),
-    ],
-  ),
-),
         ],
       ),
     );

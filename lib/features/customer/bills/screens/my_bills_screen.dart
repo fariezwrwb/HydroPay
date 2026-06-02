@@ -1,31 +1,28 @@
+import 'package:aya_ikbal/features/customer/bills/screens/bill_confirm.dart';
+import 'package:aya_ikbal/routes/app_routes.dart';
+import 'package:aya_ikbal/views/widget/customer_bottom_navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'controllers/payment_controller.dart'; 
-import 'bill_detail_screens.dart'; 
+import 'controllers/payment_controller.dart';
+import '../../../../core/constants/app_colors.dart';
 
-class MyBillsScreen extends StatefulWidget {
-  const MyBillsScreen({super.key});
+class TransactionHistoryScreen extends StatefulWidget {
+  const TransactionHistoryScreen({super.key});
 
   @override
-  State<MyBillsScreen> createState() => _MyBillsScreenState();
+  State<TransactionHistoryScreen> createState() => _TransactionHistoryScreenState();
 }
 
-class _MyBillsScreenState extends State<MyBillsScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
+  String _selectedFilter = 'Semua';
+  final List<String> _filters = ['Semua', 'Belum Bayar', 'Lunas'];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PaymentController>().fetchCustomerBills();
+      context.read<PaymentController>().fetchAllBillsForHistory();
     });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   @override
@@ -33,128 +30,367 @@ class _MyBillsScreenState extends State<MyBillsScreen> with SingleTickerProvider
     final ctrl = context.watch<PaymentController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Tagihan Air',
-          style: TextStyle(color: Color(0xFF0061C9), fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: const Color(0xFF0061C9),
-          unselectedLabelColor: const Color(0xFF64748B),
-          indicatorColor: const Color(0xFF0061C9),
-          tabs: const [
-            Tab(text: 'Belum Bayar'),
-            Tab(text: 'Riwayat Lunas'),
-          ],
-        ),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: ctrl.isLoading
+            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+            : Column(
+                children: [
+                  _buildHeader(),
+                  _buildFilterChips(),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () => ctrl.fetchAllBillsForHistory(),
+                      color: AppColors.primary,
+                      child: _buildTransactionList(ctrl),
+                    ),
+                  ),
+                ],
+              ),
       ),
-      body: ctrl.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildBillList(ctrl.activeBills, isHistory: false),
-                _buildBillList(ctrl.historyBills, isHistory: true),
-              ],
-            ),
+      bottomNavigationBar: const CustomerBottomNavbar(currentIndex: 1),
     );
   }
 
-  Widget _buildBillList(List<dynamic> list, {required bool isHistory}) {
-    if (list.isEmpty) {
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.water_drop, color: AppColors.primary, size: 26),
+              const SizedBox(width: 6),
+              const Text(
+                'HydroPay',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              _iconButton(Icons.notifications_outlined, () {}),
+              const SizedBox(width: 8),
+              _iconButton(
+                Icons.arrow_back_rounded,
+                () => Navigator.pushReplacementNamed(context, AppRoutes.customerDashboard),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _iconButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: AppColors.primary, size: 20),
+      ),
+    );
+  }
+
+  Widget _buildFilterChips() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Riwayat Tagihan',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 38,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _filters.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                final filter = _filters[index];
+                final isSelected = _selectedFilter == filter;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedFilter = filter),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primary : AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected ? AppColors.primary : AppColors.divider,
+                        width: 1,
+                      ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.25),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          : null,
+                    ),
+                    child: Text(
+                      filter,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : AppColors.textSecondary,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransactionList(PaymentController ctrl) {
+    List<Map<String, dynamic>> filtered =
+        List.from(ctrl.transactions).cast<Map<String, dynamic>>();
+
+    if (_selectedFilter == 'Belum Bayar') {
+      filtered = filtered.where((t) => t['isPaid'] == false).toList();
+    } else if (_selectedFilter == 'Lunas') {
+      filtered = filtered.where((t) => t['isPaid'] == true).toList();
+    }
+
+    final grouped = _groupByMonth(filtered);
+
+    if (grouped.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(isHistory ? Icons.history_rounded : Icons.receipt_long_rounded, size: 48, color: const Color(0xFF94A3B8)),
-            const SizedBox(height: 12),
-            Text(isHistory ? 'Belum ada riwayat pembayaran' : 'Tidak ada tagihan aktif', style: const TextStyle(color: Color(0xFF64748B))),
+            Icon(Icons.history_rounded, size: 64, color: AppColors.divider),
+            const SizedBox(height: 16),
+            const Text(
+              'Belum ada tagihan',
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => ctrl.fetchAllBillsForHistory(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Muat Ulang'),
+            ),
           ],
         ),
       );
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: list.length,
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
+      itemCount: grouped.length,
       itemBuilder: (context, index) {
-        final bill = list[index];
-        return GestureDetector(
-          onTap: () {
-            if (!isHistory) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => BillDetailScreen(bill: bill)),
-              );
-            }
-          },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+        final group = grouped[index];
+        final transactions =
+            (group['transactions'] as List).cast<Map<String, dynamic>>();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Text(
+                group['monthYear'],
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.3,
+                ),
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Bulan ${bill['month'] ?? 'Juni 2026'}', 
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isHistory ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        isHistory ? 'Lunas' : 'Belum Bayar',
-                        style: TextStyle(
-                          color: isHistory ? const Color(0xFF15803D) : const Color(0xFFEF4444),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: transactions.asMap().entries.map((entry) {
+                  final isLast = entry.key == transactions.length - 1;
+                  return Column(
+                    children: [
+                      _buildTransactionTile(entry.value, ctrl),
+                      if (!isLast)
+                        const Divider(
+                          height: 1,
+                          indent: 70,
+                          endIndent: 16,
+                          color: AppColors.divider,
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-                const Divider(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Penggunaan Air', style: TextStyle(color: Color(0xFF64748B))),
-                    Text('${bill['usage'] ?? '0'} m³', style: const TextStyle(fontWeight: FontWeight.w600)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Total Nominal', style: TextStyle(color: Color(0xFF64748B))),
-                    Text(
-                      'Rp ${bill['total_price'] ?? '0'}',
-                      style: TextStyle(
-                        color: isHistory ? const Color(0xFF1E293B) : const Color(0xFFEF4444),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  );
+                }).toList(),
+              ),
             ),
-          ),
+            const SizedBox(height: 16),
+          ],
         );
       },
     );
+  }
+
+  Widget _buildTransactionTile(Map<String, dynamic> transaction, PaymentController ctrl) {
+    final isPaid = transaction['isPaid'] ?? false;
+    final amount = transaction['amount'] ?? 0;
+    final month = transaction['month'] ?? 1;
+    final year = transaction['year'] ?? 2026;
+    final title = transaction['title'] ?? 'PDAM Kota Kita';
+    final billData = transaction['billData'];
+    final period = '${_getMonthName(month)} $year';
+
+    final statusColor = isPaid ? const Color(0xFF10B981) : AppColors.error;
+
+    return InkWell(
+      onTap: !isPaid && billData != null
+          ? () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => BillConfirmScreen(bill: billData)),
+              )
+          : null,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.water_drop_outlined,
+                color: statusColor,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    'Periode $period',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  'Rp ${ctrl.formatNumber(amount)}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    isPaid ? 'Lunas' : 'Bayar',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: statusColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Map<String, dynamic>> _groupByMonth(List<Map<String, dynamic>> transactions) {
+    final Map<String, List<Map<String, dynamic>>> grouped = {};
+
+    for (var t in transactions) {
+      final key = '${t['year']}-${t['month']}';
+      grouped.putIfAbsent(key, () => []).add(t);
+    }
+
+    final sortedKeys = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
+
+    return sortedKeys.map((key) {
+      final parts = key.split('-');
+      return {
+        'monthYear': _getMonthYearName(int.parse(parts[1]), int.parse(parts[0])),
+        'transactions': grouped[key]!,
+      };
+    }).toList();
+  }
+
+  String _getMonthYearName(int month, int year) {
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return '${months[month - 1]} $year';
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+    return months[month - 1];
   }
 }

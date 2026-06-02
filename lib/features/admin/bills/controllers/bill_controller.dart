@@ -9,7 +9,7 @@ class BillController extends ChangeNotifier {
   String? errorMessage;
   int totalCount = 0;
 
-  // ─── READ ALL ─────────────────────────────────────────────
+ 
   Future<void> fetchAll() async {
     isLoading = true;
     errorMessage = null;
@@ -75,9 +75,7 @@ class BillController extends ChangeNotifier {
     }
   }
 
-  // ─── UPDATE ───────────────────────────────────────────────
-  // Payload sesuai soal: month, year,
-  // measurement_number, usage_value
+ 
   Future<bool> update(
     int id, {
     required int month,
@@ -114,7 +112,7 @@ class BillController extends ChangeNotifier {
     }
   }
 
-  // ─── DELETE ───────────────────────────────────────────────
+ 
   Future<bool> delete(int id) async {
     isLoading = true;
     errorMessage = null;
@@ -167,8 +165,7 @@ class BillController extends ChangeNotifier {
     }
   }
 
-  // ─── VERIFY REJECTED ──────────────────────────────────────
-  // DELETE /payments/{payment_id}
+
   Future<bool> verifyRejected(int paymentId) async {
     isLoading = true;
     errorMessage = null;
@@ -193,7 +190,7 @@ class BillController extends ChangeNotifier {
     }
   }
 
-  // ─── HELPERS ──────────────────────────────────────────────
+ 
   List<BillModel> get unpaidBills =>
       bills.where((b) => !b.paid).toList();
 

@@ -31,7 +31,7 @@ class AppRoutes {
         adminCustomers: (_) => const CustomerListScreen(),
         adminProfile: (_) => const AdminProfileScreen(),
         customerDashboard: (_) => const CustomerDashboardScreen(),
-        customerBills: (_) => const MyBillsScreen(),
+        customerBills: (_) => const TransactionHistoryScreen(),
         customerProfile: (_) => const CustomerProfileScreen(),
       };
 }

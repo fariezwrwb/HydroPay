@@ -6,7 +6,7 @@ class AdminDashboardController extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
-  // Data dari backend
+  
   int customerCount = 0;
   int serviceCount = 0;
   int unverifiedPaymentCount = 0;
@@ -30,7 +30,7 @@ class AdminDashboardController extends ChangeNotifier {
     }
   }
 
-  // Soal No 8 — Jumlah Customer
+
   Future<void> _loadCustomerCount() async {
     try {
       final res = await ApiService.get(
@@ -45,7 +45,7 @@ class AdminDashboardController extends ChangeNotifier {
     }
   }
 
-  // Soal No 8 — Jumlah Layanan
+ 
   Future<void> _loadServiceCount() async {
     try {
       final res = await ApiService.get(
@@ -60,7 +60,7 @@ class AdminDashboardController extends ChangeNotifier {
     }
   }
 
-  // Soal No 8 — Jumlah pembayaran yang belum diverifikasi
+ 
   Future<void> _loadUnverifiedPayments() async {
     try {
       final res = await ApiService.get(

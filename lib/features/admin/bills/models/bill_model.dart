@@ -141,8 +141,6 @@ class BillModel {
         amount: json['amount'],
         verifiedPayment: json['verified_payment'],
       );
-
-  // Helper: nama bulan
   String get monthName {
     const months = [
       '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -151,10 +149,10 @@ class BillModel {
     return month >= 1 && month <= 12 ? months[month] : '-';
   }
 
-  // Helper: label periode
+ 
   String get periodLabel => '$monthName $year';
 
-  // Helper: ada pending payment
+  
   bool get hasPendingPayment =>
       payments != null && !payments!.verified;
 }

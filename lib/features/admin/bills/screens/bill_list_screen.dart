@@ -14,6 +14,13 @@ class BillListScreen extends StatefulWidget {
 }
 
 class _BillListScreenState extends State<BillListScreen> {
+  // Color constants
+  static const Color _white = Colors.white;
+  static const Color _blue = Color(0xFF2563EB);
+  static const Color _green = Color(0xFF22C55E);
+  static const Color _slate900 = Color(0xFF0F172A);
+  static const Color _slate400 = Color(0xFF94A3B8);
+
   @override
   void initState() {
     super.initState();
@@ -30,7 +37,7 @@ class _BillListScreenState extends State<BillListScreen> {
     ).format(price);
   }
 
-  // ─── VERIFY DIALOG ────────────────────────────────────────
+ 
   void _showVerifyDialog(BillModel b) {
     if (b.payments == null) return;
     final paymentId = b.payments!.id;
@@ -48,7 +55,6 @@ class _BillListScreenState extends State<BillListScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Handle bar
             Center(
               child: Container(
                 width: 40,
@@ -69,33 +75,25 @@ class _BillListScreenState extends State<BillListScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            // Info box
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: const Color(0xFFFFFBEB),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                    color: const Color(0xFFF59E0B).withOpacity(0.3)),
+                border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _infoRow('Pelanggan',
-                      b.customer?.name ?? 'Pelanggan #${b.customerId}'),
+                  _infoRow('Pelanggan', b.customer?.name ?? 'Pelanggan #${b.customerId}'),
                   const SizedBox(height: 4),
                   _infoRow('Periode', b.periodLabel),
                   const SizedBox(height: 4),
                   _infoRow('Penggunaan', '${b.usageValue} m³'),
                   const SizedBox(height: 4),
-                  _infoRow(
-                    'Jumlah Bayar',
-                    _formatRupiah(
-                        b.payments?.totalAmount ?? b.price),
-                  ),
+                  _infoRow('Jumlah Bayar', _formatRupiah(b.payments?.totalAmount ?? b.price)),
                   const SizedBox(height: 4),
-                  _infoRow('Tanggal Bayar',
-                      b.payments?.paymentDate ?? '-'),
+                  _infoRow('Tanggal Bayar', b.payments?.paymentDate ?? '-'),
                 ],
               ),
             ),
@@ -106,32 +104,20 @@ class _BillListScreenState extends State<BillListScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () async {
                       Navigator.pop(context);
-                      final ok =
-                          await ctrl.verifyRejected(paymentId);
+                      final ok = await ctrl.verifyRejected(paymentId);
                       if (mounted) {
                         _showSnack(
-                          ok
-                              ? 'Pembayaran ditolak'
-                              : ctrl.errorMessage ?? 'Gagal',
-                          ok
-                              ? const Color(0xFFEF4444)
-                              : const Color(0xFFEF4444),
+                          ok ? 'Pembayaran ditolak' : ctrl.errorMessage ?? 'Gagal',
+                          ok ? const Color(0xFFEF4444) : const Color(0xFFEF4444),
                         );
                       }
                     },
-                    icon: const Icon(Icons.close_rounded,
-                        size: 15, color: Color(0xFFEF4444)),
-                    label: const Text('Tolak',
-                        style: TextStyle(
-                            color: Color(0xFFEF4444),
-                            fontWeight: FontWeight.w600)),
+                    icon: const Icon(Icons.close_rounded, size: 15, color: Color(0xFFEF4444)),
+                    label: const Text('Tolak', style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.w600)),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(
-                          color: Color(0xFFEF4444)),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 12),
+                      side: const BorderSide(color: Color(0xFFEF4444)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
@@ -140,32 +126,21 @@ class _BillListScreenState extends State<BillListScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () async {
                       Navigator.pop(context);
-                      final ok =
-                          await ctrl.verifyAccepted(paymentId);
+                      final ok = await ctrl.verifyAccepted(paymentId);
                       if (mounted) {
                         _showSnack(
-                          ok
-                              ? 'Pembayaran diverifikasi'
-                              : ctrl.errorMessage ?? 'Gagal',
-                          ok
-                              ? const Color(0xFF22C55E)
-                              : const Color(0xFFEF4444),
+                          ok ? 'Pembayaran diverifikasi' : ctrl.errorMessage ?? 'Gagal',
+                          ok ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
                         );
                       }
                     },
-                    icon: const Icon(Icons.check_rounded,
-                        size: 15, color: Colors.white),
-                    label: const Text('Terima',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600)),
+                    icon: const Icon(Icons.check_rounded, size: 15, color: Colors.white),
+                    label: const Text('Terima', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF22C55E),
                       elevation: 0,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
@@ -181,48 +156,35 @@ class _BillListScreenState extends State<BillListScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style: const TextStyle(
-                fontSize: 12, color: Color(0xFF92400E))),
-        Text(value,
-            style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF78350F))),
+        Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF92400E))),
+        Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF78350F))),
       ],
     );
   }
 
-  // ─── CONFIRM DELETE ───────────────────────────────────────
+
   Future<void> _confirmDelete(BillModel b) async {
     final ctrl = context.read<BillController>();
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16)),
-        title: const Text('Hapus Tagihan',
-            style: TextStyle(
-                fontSize: 16, fontWeight: FontWeight.bold)),
-        content: Text(
-            'Yakin hapus tagihan ${b.periodLabel} milik ${b.customer?.name ?? '-'}?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Hapus Tagihan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text('Yakin hapus tagihan ${b.periodLabel} milik ${b.customer?.name ?? '-'}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal',
-                style: TextStyle(color: Color(0xFF94A3B8))),
+            child: const Text('Batal', style: TextStyle(color: Color(0xFF94A3B8))),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),
               elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Hapus',
-                style: TextStyle(color: Colors.white)),
+            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -231,12 +193,8 @@ class _BillListScreenState extends State<BillListScreen> {
       final ok = await ctrl.delete(b.id);
       if (mounted) {
         _showSnack(
-          ok
-              ? 'Tagihan berhasil dihapus'
-              : ctrl.errorMessage ?? 'Gagal menghapus',
-          ok
-              ? const Color(0xFF22C55E)
-              : const Color(0xFFEF4444),
+          ok ? 'Tagihan berhasil dihapus' : ctrl.errorMessage ?? 'Gagal menghapus',
+          ok ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
         );
       }
     }
@@ -248,8 +206,7 @@ class _BillListScreenState extends State<BillListScreen> {
         content: Text(msg),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -266,22 +223,17 @@ class _BillListScreenState extends State<BillListScreen> {
             _buildTopBar(),
             Expanded(
               child: ctrl.isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                          color: Color(0xFF2563EB)))
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF2563EB)))
                   : ctrl.errorMessage != null
                       ? _buildError(ctrl)
                       : RefreshIndicator(
                           onRefresh: () => ctrl.fetchAll(),
                           color: const Color(0xFF2563EB),
                           child: SingleChildScrollView(
-                            physics:
-                                const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.fromLTRB(
-                                16, 16, 16, 100),
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildStatRow(ctrl),
                                 const SizedBox(height: 20),
@@ -297,14 +249,13 @@ class _BillListScreenState extends State<BillListScreen> {
                                 if (ctrl.bills.isEmpty)
                                   _buildEmpty()
                                 else
-                                  ...ctrl.bills.map(
-                                      (b) => _buildBillCard(b)),
+                                  ...ctrl.bills.map((b) => _buildBillCard(b)),
+                                const SizedBox(height: 80), 
                               ],
                             ),
                           ),
                         ),
             ),
-            _buildBottomNav(),
           ],
         ),
       ),
@@ -312,61 +263,81 @@ class _BillListScreenState extends State<BillListScreen> {
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(
-                builder: (_) => const BillFormScreen()),
+            MaterialPageRoute(builder: (_) => const BillFormScreen()),
           );
           if (result == true && mounted) {
             ctrl.fetchAll();
           }
         },
         backgroundColor: const Color(0xFF2563EB),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14)),
-        child: const Icon(Icons.add_rounded,
-            color: Colors.white, size: 26),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+        child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  // ─── TOP BAR ──────────────────────────────────────────────
+
   Widget _buildTopBar() {
     return Container(
-      color: const Color(0xFF1E2B3C),
-      padding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+      decoration: BoxDecoration(
+        color: _white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           Container(
-            width: 28,
-            height: 28,
+            width: 30,
+            height: 30,
             decoration: BoxDecoration(
-              color: const Color(0xFF2563EB),
-              borderRadius: BorderRadius.circular(6),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF3B82F6), _blue],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: _blue.withOpacity(0.4),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            child: const Icon(Icons.water_drop_rounded,
-                color: Colors.white, size: 16),
+            child: const Icon(
+              Icons.water_drop_rounded,
+              color: _white,
+              size: 17,
+            ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 9),
           const Text(
-            'Kelola Tagihan',
+            'HydroPay',
             style: TextStyle(
-              color: Colors.white,
-              fontSize: 15,
+              color: _slate900,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
+              letterSpacing: 0.2,
             ),
           ),
           const Spacer(),
           GestureDetector(
-            onTap: () =>
-                Navigator.pushNamed(context, AppRoutes.adminProfile),
-            child: const CircleAvatar(
-              radius: 16,
-              backgroundColor: Color(0xFF2563EB),
-              child: Text('AD',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold)),
+            onTap: () => Navigator.pushNamed(context, AppRoutes.adminProfile),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: _blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(Icons.person_outline_rounded, color: _blue, size: 20),
             ),
           ),
         ],
@@ -374,7 +345,7 @@ class _BillListScreenState extends State<BillListScreen> {
     );
   }
 
-  // ─── STAT ROW ─────────────────────────────────────────────
+ 
   Widget _buildStatRow(BillController ctrl) {
     return Row(
       children: [
@@ -447,7 +418,6 @@ class _BillListScreenState extends State<BillListScreen> {
     );
   }
 
-  // ─── BILL CARD ────────────────────────────────────────────
   Widget _buildBillCard(BillModel b) {
     final isPaid = b.paid;
     final isVerified = b.verifiedPayment ?? false;
@@ -500,8 +470,7 @@ class _BillListScreenState extends State<BillListScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        b.customer?.name ??
-                            'Pelanggan #${b.customerId}',
+                        b.customer?.name ?? 'Pelanggan #${b.customerId}',
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -519,13 +488,11 @@ class _BillListScreenState extends State<BillListScreen> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusBg,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color: statusColor.withOpacity(0.3)),
+                    border: Border.all(color: statusColor.withOpacity(0.3)),
                   ),
                   child: Text(statusLabel,
                       style: TextStyle(
@@ -542,22 +509,19 @@ class _BillListScreenState extends State<BillListScreen> {
             padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
             child: Row(
               children: [
-                _chip(Icons.bolt_rounded,
-                    '${b.usageValue} m³'),
+                _chip(Icons.bolt_rounded, '${b.usageValue} m³'),
                 const SizedBox(width: 6),
-                _chip(Icons.payments_rounded,
-                    _formatRupiah(b.price)),
+                _chip(Icons.payments_rounded, _formatRupiah(b.price)),
                 const SizedBox(width: 6),
                 Flexible(
-                  child: _chip(Icons.tag_rounded,
-                      b.measurementNumber,
+                  child: _chip(Icons.tag_rounded, b.measurementNumber,
                       overflow: true),
                 ),
               ],
             ),
           ),
 
-          // Pending payment box
+         
           if (b.hasPendingPayment)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
@@ -566,9 +530,7 @@ class _BillListScreenState extends State<BillListScreen> {
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFFBEB),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                      color: const Color(0xFFF59E0B)
-                          .withOpacity(0.3)),
+                  border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -590,53 +552,39 @@ class _BillListScreenState extends State<BillListScreen> {
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () =>
-                                _showVerifyDialog(b),
-                            icon: const Icon(
-                                Icons.close_rounded,
-                                size: 13,
-                                color: Color(0xFFEF4444)),
+                            onPressed: () => _showVerifyDialog(b),
+                            icon: const Icon(Icons.close_rounded,
+                                size: 13, color: Color(0xFFEF4444)),
                             label: const Text('Tolak',
                                 style: TextStyle(
                                     fontSize: 11,
                                     color: Color(0xFFEF4444),
-                                    fontWeight:
-                                        FontWeight.w600)),
+                                    fontWeight: FontWeight.w600)),
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(
-                                  color: Color(0xFFEF4444)),
+                              side: const BorderSide(color: Color(0xFFEF4444)),
                               shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(7)),
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 6),
+                                  borderRadius: BorderRadius.circular(7)),
+                              padding: const EdgeInsets.symmetric(vertical: 6),
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: () =>
-                                _showVerifyDialog(b),
-                            icon: const Icon(
-                                Icons.check_rounded,
-                                size: 13,
-                                color: Colors.white),
+                            onPressed: () => _showVerifyDialog(b),
+                            icon: const Icon(Icons.check_rounded,
+                                size: 13, color: Colors.white),
                             label: const Text('Terima',
                                 style: TextStyle(
                                     fontSize: 11,
                                     color: Colors.white,
-                                    fontWeight:
-                                        FontWeight.w600)),
+                                    fontWeight: FontWeight.w600)),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color(0xFF22C55E),
+                              backgroundColor: const Color(0xFF22C55E),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(7)),
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 6),
+                                  borderRadius: BorderRadius.circular(7)),
+                              padding: const EdgeInsets.symmetric(vertical: 6),
                             ),
                           ),
                         ),
@@ -651,8 +599,7 @@ class _BillListScreenState extends State<BillListScreen> {
 
           // Action buttons
           Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 10, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Row(
               children: [
                 Expanded(
@@ -661,14 +608,11 @@ class _BillListScreenState extends State<BillListScreen> {
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) =>
-                              BillFormScreen(bill: b),
+                          builder: (_) => BillFormScreen(bill: b),
                         ),
                       );
                       if (result == true && mounted) {
-                        context
-                            .read<BillController>()
-                            .fetchAll();
+                        context.read<BillController>().fetchAll();
                       }
                     },
                     icon: const Icon(Icons.edit_rounded,
@@ -679,12 +623,9 @@ class _BillListScreenState extends State<BillListScreen> {
                             color: Color(0xFF2563EB),
                             fontWeight: FontWeight.w600)),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(
-                          color: Color(0xFFE2E8F0)),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 8),
+                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                     ),
                   ),
                 ),
@@ -697,13 +638,10 @@ class _BillListScreenState extends State<BillListScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFF1F2),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: const Color(0xFFFFCDD2)),
+                      border: Border.all(color: const Color(0xFFFFCDD2)),
                     ),
-                    child: const Icon(
-                        Icons.delete_outline_rounded,
-                        size: 17,
-                        color: Color(0xFFEF4444)),
+                    child: const Icon(Icons.delete_outline_rounded,
+                        size: 17, color: Color(0xFFEF4444)),
                   ),
                 ),
               ],
@@ -733,8 +671,7 @@ class _BillListScreenState extends State<BillListScreen> {
       ],
     );
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(6),
@@ -744,7 +681,7 @@ class _BillListScreenState extends State<BillListScreen> {
     );
   }
 
-  // ─── ERROR & EMPTY ────────────────────────────────────────
+
   Widget _buildError(BillController ctrl) {
     return Center(
       child: Padding(
@@ -757,8 +694,7 @@ class _BillListScreenState extends State<BillListScreen> {
             const SizedBox(height: 12),
             Text(ctrl.errorMessage ?? 'Terjadi kesalahan',
                 textAlign: TextAlign.center,
-                style:
-                    const TextStyle(color: Color(0xFF64748B))),
+                style: const TextStyle(color: Color(0xFF64748B))),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => ctrl.fetchAll(),
@@ -798,7 +734,7 @@ class _BillListScreenState extends State<BillListScreen> {
     );
   }
 
-  // ─── BOTTOM NAV ───────────────────────────────────────────
+ 
   Widget _buildBottomNav() {
     return Container(
       decoration: BoxDecoration(
@@ -824,34 +760,26 @@ class _BillListScreenState extends State<BillListScreen> {
             unselectedItemColor: const Color(0xFF8E8E93),
             selectedLabelStyle: const TextStyle(
                 fontWeight: FontWeight.w700, fontSize: 12),
-            unselectedLabelStyle:
-                const TextStyle(fontSize: 11),
+            unselectedLabelStyle: const TextStyle(fontSize: 11),
             onTap: (i) {
               if (i == 3) return;
               switch (i) {
                 case 0:
-                  Navigator.pushReplacementNamed(
-                      context, AppRoutes.adminDashboard);
+                  Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
                   break;
                 case 1:
-                  Navigator.pushReplacementNamed(
-                      context, AppRoutes.adminServices);
+                  Navigator.pushReplacementNamed(context, AppRoutes.adminServices);
                   break;
                 case 2:
-                  Navigator.pushReplacementNamed(
-                      context, AppRoutes.adminCustomers);
+                  Navigator.pushReplacementNamed(context, AppRoutes.adminCustomers);
                   break;
               }
             },
             items: [
-              _navItem(
-                  Icons.home_outlined, Icons.home, 'Home'),
-              _navItem(Icons.layers_outlined, Icons.layers,
-                  'Layanan'),
-              _navItem(Icons.people_outline, Icons.people,
-                  'Customer'),
-              _navItem(Icons.receipt_long_outlined,
-                  Icons.receipt_long, 'Tagihan'),
+              _navItem(Icons.home_outlined, Icons.home, 'Home'),
+              _navItem(Icons.layers_outlined, Icons.layers, 'Layanan'),
+              _navItem(Icons.people_outline, Icons.people, 'Customer'),
+              _navItem(Icons.receipt_long_outlined, Icons.receipt_long, 'Tagihan'),
             ],
           ),
         ),

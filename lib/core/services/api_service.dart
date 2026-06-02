@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../constants/api_constants.dart';
 import 'auth_service.dart';
+import 'package:mime/mime.dart';
+import 'package:http_parser/http_parser.dart';
 
 class ApiService {
   static Future<Map<String, String>> _headers({bool withToken = true}) async {
@@ -88,7 +90,13 @@ class ApiService {
     if (token != null) request.headers['Authorization'] = 'Bearer $token';
 
     request.fields.addAll(fields);
-    request.files.add(await http.MultipartFile.fromPath(fileField, filePath));
+    final mimeType = lookupMimeType(filePath) ?? 'image/jpeg';
+final mimeTypeSplit = mimeType.split('/');
+request.files.add(await http.MultipartFile.fromPath(
+  fileField,
+  filePath,
+  contentType: MediaType(mimeTypeSplit[0], mimeTypeSplit[1]),
+));
 
     final streamed = await request.send();
     final res = await http.Response.fromStream(streamed);

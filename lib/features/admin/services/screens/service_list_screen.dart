@@ -121,7 +121,6 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
      appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        // Bungkus ketiga komponen ini ke dalam Row agar berjajar horizontal
         title: Row(
           children: [
             Container(
@@ -213,10 +212,10 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
         onPressed: () => _openForm(),
         backgroundColor: const Color(0xFF2563EB),
         elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
         child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
       ),
-      bottomNavigationBar: const AdminBottomNavbar(currentIndex: 3), 
+      bottomNavigationBar: const AdminBottomNavbar(currentIndex: 1), 
     );
   }
 
