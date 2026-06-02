@@ -103,10 +103,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   const SizedBox(height: 12),
                   const Text(
-                    'Buat Akun',
+                    'Register',
                     style: TextStyle(
                       fontSize: 34,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.bold,
                       color: Color(0xFF0D1B2A),
                       height: 1.1,
                     ),

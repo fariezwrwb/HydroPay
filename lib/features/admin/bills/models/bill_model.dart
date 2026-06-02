@@ -1,71 +1,33 @@
-import '../../../admin/customers/models/customer_model.dart';
+import 'package:aya_ikbal/features/admin/customers/models/customer_model.dart';
+import 'package:aya_ikbal/features/admin/services/models/service_model.dart';
 
-class AdminNestedModel {
-  final int id;
-  final int userId;
-  final String name;
-  final String phone;
-  final String ownerToken;
-  final String createdAt;
-  final String updatedAt;
-
-  AdminNestedModel({
-    required this.id,
-    required this.userId,
-    required this.name,
-    required this.phone,
-    required this.ownerToken,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory AdminNestedModel.fromJson(Map<String, dynamic> json) =>
-      AdminNestedModel(
-        id: json['id'] ?? 0,
-        userId: json['user_id'] ?? 0,
-        name: json['name'] ?? '',
-        phone: json['phone'] ?? '',
-        ownerToken: json['owner_token'] ?? '',
-        createdAt: json['createdAt'] ?? '',
-        updatedAt: json['updatedAt'] ?? '',
-      );
-}
-
-class PaymentNestedModel {
+class PaymentModel {
   final int id;
   final int billId;
-  final String paymentDate;
+  final DateTime paymentDate;
   final bool verified;
   final int totalAmount;
   final String paymentProof;
-  final String ownerToken;
-  final String createdAt;
-  final String updatedAt;
 
-  PaymentNestedModel({
+  PaymentModel({
     required this.id,
     required this.billId,
     required this.paymentDate,
     required this.verified,
     required this.totalAmount,
     required this.paymentProof,
-    required this.ownerToken,
-    required this.createdAt,
-    required this.updatedAt,
   });
 
-  factory PaymentNestedModel.fromJson(Map<String, dynamic> json) =>
-      PaymentNestedModel(
-        id: json['id'] ?? 0,
-        billId: json['bill_id'] ?? 0,
-        paymentDate: json['payment_date'] ?? '',
-        verified: json['verified'] ?? false,
-        totalAmount: json['total_amount'] ?? 0,
-        paymentProof: json['payment_proof'] ?? '',
-        ownerToken: json['owner_token'] ?? '',
-        createdAt: json['createdAt'] ?? '',
-        updatedAt: json['updatedAt'] ?? '',
-      );
+  factory PaymentModel.fromJson(Map<String, dynamic> json) {
+    return PaymentModel(
+      id: json['id'],
+      billId: json['bill_id'],
+      paymentDate: DateTime.parse(json['payment_date']),
+      verified: json['verified'],
+      totalAmount: json['total_amount'],
+      paymentProof: json['payment_proof'],
+    );
+  }
 }
 
 class BillModel {
@@ -80,15 +42,12 @@ class BillModel {
   final int serviceId;
   final bool paid;
   final String ownerToken;
-  final String createdAt;
-  final String updatedAt;
-
-  final ServiceNestedModel? service;
-  final AdminNestedModel? admin;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  
   final CustomerModel? customer;
-  final PaymentNestedModel? payments;
-  final int? amount;
-  final bool? verifiedPayment;
+  final ServiceModel? service;
+  final PaymentModel? payments;
 
   BillModel({
     required this.id,
@@ -104,55 +63,53 @@ class BillModel {
     required this.ownerToken,
     required this.createdAt,
     required this.updatedAt,
-    this.service,
-    this.admin,
     this.customer,
+    this.service,
     this.payments,
-    this.amount,
-    this.verifiedPayment,
   });
 
-  factory BillModel.fromJson(Map<String, dynamic> json) => BillModel(
-        id: json['id'] ?? 0,
-        customerId: json['customer_id'] ?? 0,
-        adminId: json['admin_id'] ?? 0,
-        month: json['month'] ?? 0,
-        year: json['year'] ?? 0,
-        measurementNumber: json['measurement_number'] ?? '',
-        usageValue: json['usage_value'] ?? 0,
-        price: json['price'] ?? 0,
-        serviceId: json['service_id'] ?? 0,
-        paid: json['paid'] ?? false,
-        ownerToken: json['owner_token'] ?? '',
-        createdAt: json['createdAt'] ?? '',
-        updatedAt: json['updatedAt'] ?? '',
-        service: json['service'] != null
-            ? ServiceNestedModel.fromJson(json['service'])
-            : null,
-        admin: json['admin'] != null
-            ? AdminNestedModel.fromJson(json['admin'])
-            : null,
-        customer: json['customer'] != null
-            ? CustomerModel.fromJson(json['customer'])
-            : null,
-        payments: json['payments'] != null
-            ? PaymentNestedModel.fromJson(json['payments'])
-            : null,
-        amount: json['amount'],
-        verifiedPayment: json['verified_payment'],
-      );
-  String get monthName {
-    const months = [
-      '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-    ];
-    return month >= 1 && month <= 12 ? months[month] : '-';
+  factory BillModel.fromJson(Map<String, dynamic> json) {
+    return BillModel(
+      id: json['id'],
+      customerId: json['customer_id'],
+      adminId: json['admin_id'],
+      month: json['month'],
+      year: json['year'],
+      measurementNumber: json['measurement_number'],
+      usageValue: json['usage_value'],
+      price: json['price'],
+      serviceId: json['service_id'],
+      paid: json['paid'],
+      ownerToken: json['owner_token'],
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+      customer: json['customer'] != null 
+          ? CustomerModel.fromJson(json['customer']) 
+          : null,
+      service: json['service'] != null 
+          ? ServiceModel.fromJson(json['service']) 
+          : null,
+      payments: json['payments'] != null 
+          ? PaymentModel.fromJson(json['payments']) 
+          : null,
+    );
   }
 
- 
-  String get periodLabel => '$monthName $year';
+  String get periodLabel {
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return '${months[month - 1]} $year';
+  }
+
+    bool get hasPendingPayment {
+    return paid && payments != null && payments!.verified == false;
+  }
 
   
-  bool get hasPendingPayment =>
-      payments != null && !payments!.verified;
+  bool? get verifiedPayment => payments?.verified;
+  
+  
+  bool get isUnpaid => !paid && payments == null;
 }

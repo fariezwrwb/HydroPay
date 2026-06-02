@@ -1,43 +1,76 @@
 import 'package:flutter/material.dart';
-import '../../../../core/services/api_service.dart';
-import '../../../../core/constants/api_constants.dart';
 import '../models/bill_model.dart';
+import '../../../../core/services/api_service.dart';
+import '../../../../core/services/auth_service.dart';
 
 class BillController extends ChangeNotifier {
-  List<BillModel> bills = [];
-  bool isLoading = false;
-  String? errorMessage;
-  int totalCount = 0;
+  List<BillModel> _bills = [];
+  bool _isLoading = false;
+  String? _errorMessage;
 
- 
+  List<BillModel> get bills => _bills;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+
+  // Tagihan belum bayar (paid = false)
+  List<BillModel> get unpaidBills {
+    return _bills.where((bill) => !bill.paid).toList();
+  }
+
+  // Tagihan menunggu verifikasi (sudah bayar tapi belum diverifikasi)
+  List<BillModel> get pendingVerification {
+    return _bills.where((bill) => !bill.paid && bill.payments != null && !bill.payments!.verified).toList();
+  }
+
+  // Total semua tagihan
+  int get totalCount => _bills.length;
+
   Future<void> fetchAll() async {
-    isLoading = true;
-    errorMessage = null;
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
+
     try {
-      final res = await ApiService.get(
-        ApiConstants.bills,
-        withToken: true,
-      );
-      if (res['success'] == true) {
-        bills = (res['data'] as List)
-            .map((e) => BillModel.fromJson(e))
-            .toList();
-        totalCount = res['count'] ?? bills.length;
-      } else {
-        errorMessage = res['message'] ?? 'Gagal memuat tagihan';
+      final token = await AuthService.getToken();
+      if (token == null) {
+        _errorMessage = 'Silakan login terlebih dahulu';
+        _isLoading = false;
+        notifyListeners();
+        return;
       }
+
+      // Admin: GET /bills (semua data)
+      final response = await ApiService.get('/bills', withToken: true);
+
+      print('Response bills: $response');
+
+      if (response['success'] == true) {
+        final data = response['data'];
+        
+        if (data is List) {
+          _bills = data.map((json) => BillModel.fromJson(json)).toList();
+        } else {
+          _bills = [];
+        }
+        
+        print('Jumlah bills: ${_bills.length}');
+        print('Unpaid count: ${unpaidBills.length}');
+        print('Pending verification: ${pendingVerification.length}');
+        
+      } else {
+        _errorMessage = response['message'] ?? 'Gagal mengambil data';
+      }
+
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
-      errorMessage = 'Terjadi kesalahan: $e';
-    } finally {
-      isLoading = false;
+      print('Error: $e');
+      _errorMessage = 'Terjadi kesalahan: $e';
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  // ─── CREATE ───────────────────────────────────────────────
-  // Payload sesuai soal: customer_id, month, year,
-  // measurement_number, usage_value
   Future<bool> create({
     required int customerId,
     required int month,
@@ -45,37 +78,36 @@ class BillController extends ChangeNotifier {
     required String measurementNumber,
     required int usageValue,
   }) async {
-    isLoading = true;
-    errorMessage = null;
+    _isLoading = true;
     notifyListeners();
+
     try {
-      final res = await ApiService.post(
-        ApiConstants.bills,
-        {
-          'customer_id': customerId,
-          'month': month,
-          'year': year,
-          'measurement_number': measurementNumber,
-          'usage_value': usageValue,
-        },
-        withToken: true,
-      );
-      if (res['success'] == true) {
+      final payload = {
+        'customer_id': customerId,
+        'month': month,
+        'year': year,
+        'measurement_number': measurementNumber,
+        'usage_value': usageValue,
+      };
+
+      final response = await ApiService.post('/bills', payload, withToken: true);
+
+      if (response['success'] == true) {
         await fetchAll();
         return true;
+      } else {
+        _errorMessage = response['message'] ?? 'Gagal membuat tagihan';
+        return false;
       }
-      errorMessage = res['message'] ?? 'Gagal membuat tagihan';
-      return false;
     } catch (e) {
-      errorMessage = 'Terjadi kesalahan: $e';
+      _errorMessage = 'Terjadi kesalahan: $e';
       return false;
     } finally {
-      isLoading = false;
+      _isLoading = false;
       notifyListeners();
     }
   }
 
- 
   Future<bool> update(
     int id, {
     required int month,
@@ -83,117 +115,101 @@ class BillController extends ChangeNotifier {
     required String measurementNumber,
     required int usageValue,
   }) async {
-    isLoading = true;
-    errorMessage = null;
+    _isLoading = true;
     notifyListeners();
+
     try {
-      final res = await ApiService.patch(
-        '${ApiConstants.bills}/$id',
-        {
-          'month': month,
-          'year': year,
-          'measurement_number': measurementNumber,
-          'usage_value': usageValue,
-        },
-        withToken: true,
-      );
-      if (res['success'] == true) {
+      final payload = {
+        'month': month,
+        'year': year,
+        'measurement_number': measurementNumber,
+        'usage_value': usageValue,
+      };
+
+      final response = await ApiService.patch('/bills/$id', payload, withToken: true);
+
+      if (response['success'] == true) {
         await fetchAll();
         return true;
+      } else {
+        _errorMessage = response['message'] ?? 'Gagal memperbarui tagihan';
+        return false;
       }
-      errorMessage = res['message'] ?? 'Gagal mengupdate tagihan';
-      return false;
     } catch (e) {
-      errorMessage = 'Terjadi kesalahan: $e';
+      _errorMessage = 'Terjadi kesalahan: $e';
       return false;
     } finally {
-      isLoading = false;
+      _isLoading = false;
       notifyListeners();
     }
   }
 
- 
   Future<bool> delete(int id) async {
-    isLoading = true;
-    errorMessage = null;
+    _isLoading = true;
     notifyListeners();
+
     try {
-      final res = await ApiService.delete(
-        '${ApiConstants.bills}/$id',
-        withToken: true,
-      );
-      if (res['success'] == true) {
+      final response = await ApiService.delete('/bills/$id', withToken: true);
+
+      if (response['success'] == true) {
         await fetchAll();
         return true;
+      } else {
+        _errorMessage = response['message'] ?? 'Gagal menghapus tagihan';
+        return false;
       }
-      errorMessage = res['message'] ?? 'Gagal menghapus tagihan';
-      return false;
     } catch (e) {
-      errorMessage = 'Terjadi kesalahan: $e';
+      _errorMessage = 'Terjadi kesalahan: $e';
       return false;
     } finally {
-      isLoading = false;
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  // ─── VERIFY ACCEPTED ──────────────────────────────────────
-  // PATCH /payments/{payment_id}
   Future<bool> verifyAccepted(int paymentId) async {
-    isLoading = true;
-    errorMessage = null;
+    _isLoading = true;
     notifyListeners();
+
     try {
-      final res = await ApiService.patch(
-        '${ApiConstants.payments}/$paymentId',
-        {},
-        withToken: true,
-      );
-      if (res['success'] == true) {
+      final response = await ApiService.patch('/payments/$paymentId', {}, withToken: true);
+
+      if (response['success'] == true) {
         await fetchAll();
         return true;
+      } else {
+        _errorMessage = response['message'] ?? 'Gagal verifikasi';
+        return false;
       }
-      errorMessage =
-          res['message'] ?? 'Gagal memverifikasi pembayaran';
-      return false;
     } catch (e) {
-      errorMessage = 'Terjadi kesalahan: $e';
+      _errorMessage = 'Terjadi kesalahan: $e';
       return false;
     } finally {
-      isLoading = false;
+      _isLoading = false;
       notifyListeners();
     }
   }
-
 
   Future<bool> verifyRejected(int paymentId) async {
-    isLoading = true;
-    errorMessage = null;
+    _isLoading = true;
     notifyListeners();
+
     try {
-      final res = await ApiService.delete(
-        '${ApiConstants.payments}/$paymentId',
-        withToken: true,
-      );
-      if (res['success'] == true) {
+      final response = await ApiService.delete('/payments/$paymentId', withToken: true);
+
+      if (response['success'] == true) {
         await fetchAll();
         return true;
+      } else {
+        _errorMessage = response['message'] ?? 'Gagal menolak pembayaran';
+        return false;
       }
-      errorMessage = res['message'] ?? 'Gagal menolak pembayaran';
-      return false;
     } catch (e) {
-      errorMessage = 'Terjadi kesalahan: $e';
+      _errorMessage = 'Terjadi kesalahan: $e';
       return false;
     } finally {
-      isLoading = false;
+      _isLoading = false;
       notifyListeners();
     }
   }
-
- 
-  List<BillModel> get unpaidBills =>
-      bills.where((b) => !b.paid).toList();
-
-  List<BillModel> get pendingVerification =>
-      bills.where((b) => b.hasPendingPayment).toList();
 }

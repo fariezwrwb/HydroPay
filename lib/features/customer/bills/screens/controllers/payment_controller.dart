@@ -1,6 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:aya_ikbal/core/services/api_service.dart';
 import 'package:aya_ikbal/core/services/auth_service.dart';
-import 'package:flutter/material.dart';
 
 class PaymentController extends ChangeNotifier {
   List<dynamic> activeBills = [];
@@ -127,13 +128,17 @@ class PaymentController extends ChangeNotifier {
 
       final response = await ApiService.get('/bills/me', withToken: true);
 
+      print('Response bills for history: $response');
+
       if (response['success'] == true) {
         final bills = response['data'] as List? ?? [];
-
+        
         for (var bill in bills) {
           final isPaid = bill['paid'] == true;
+          final payments = bill['payments'];
+          final isVerified = payments != null && payments['verified'] == true;
           final service = bill['service'] ?? {};
-
+          
           transactions.add({
             'type': 'bill',
             'amount': bill['price'] ?? 0,
@@ -141,21 +146,26 @@ class PaymentController extends ChangeNotifier {
             'month': bill['month'] ?? 1,
             'year': bill['year'] ?? DateTime.now().year,
             'isPaid': isPaid,
+            'verified': isVerified,
             'billData': bill,
           });
         }
-
+        
         transactions.sort((a, b) {
           final aDate = DateTime(a['year'], a['month']);
           final bDate = DateTime(b['year'], b['month']);
           return bDate.compareTo(aDate);
         });
+        
       } else {
-        errorMessage = response['message'] ?? 'Gagal mengambil data';
+        errorMessage = response['message'] ?? 'Gagal mengambil数据';
       }
+
+      isLoading = false;
+      notifyListeners();
     } catch (e) {
+      print('Error: $e');
       errorMessage = 'Terjadi kesalahan: $e';
-    } finally {
       isLoading = false;
       notifyListeners();
     }
@@ -180,8 +190,6 @@ class PaymentController extends ChangeNotifier {
         filePath: filePath,
         fileField: 'file',
       );
-
-      
 
       if (response['success'] == true) {
         await fetchPaymentHistory();
@@ -220,11 +228,12 @@ class PaymentController extends ChangeNotifier {
       );
 
       print('=== RESPONSE BACKEND ===');
-print(response);
+      print(response);
 
       if (response['success'] == true) {
         await fetchCustomerBills();
         await fetchPaymentHistory();
+        await fetchAllBillsForHistory();
         return true;
       } else {
         errorMessage = response['message'] ?? 'Gagal melakukan pembayaran';

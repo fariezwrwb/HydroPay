@@ -1,10 +1,10 @@
-import 'package:aya_ikbal/features/customer/bills/screens/bill_confirm.dart';
-import 'package:aya_ikbal/routes/app_routes.dart';
-import 'package:aya_ikbal/views/widget/customer_bottom_navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'controllers/payment_controller.dart';
+import 'bill_confirm.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../routes/app_routes.dart';
+import '../../../../views/widget/customer_bottom_navbar.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -15,7 +15,7 @@ class TransactionHistoryScreen extends StatefulWidget {
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   String _selectedFilter = 'Semua';
-  final List<String> _filters = ['Semua', 'Belum Bayar', 'Lunas'];
+  final List<String> _filters = ['Semua', 'Belum Bayar', 'Menunggu', 'Lunas'];
 
   @override
   void initState() {
@@ -69,16 +69,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              _iconButton(Icons.notifications_outlined, () {}),
-              const SizedBox(width: 8),
-              _iconButton(
-                Icons.arrow_back_rounded,
-                () => Navigator.pushReplacementNamed(context, AppRoutes.customerDashboard),
               ),
             ],
           ),
@@ -171,8 +161,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
     if (_selectedFilter == 'Belum Bayar') {
       filtered = filtered.where((t) => t['isPaid'] == false).toList();
+    } else if (_selectedFilter == 'Menunggu') {
+      filtered = filtered.where((t) => t['isPaid'] == true && t['verified'] == false).toList();
     } else if (_selectedFilter == 'Lunas') {
-      filtered = filtered.where((t) => t['isPaid'] == true).toList();
+      filtered = filtered.where((t) => t['isPaid'] == true && t['verified'] == true).toList();
     }
 
     final grouped = _groupByMonth(filtered);
@@ -266,6 +258,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
   Widget _buildTransactionTile(Map<String, dynamic> transaction, PaymentController ctrl) {
     final isPaid = transaction['isPaid'] ?? false;
+    final isVerified = transaction['verified'] ?? false;
     final amount = transaction['amount'] ?? 0;
     final month = transaction['month'] ?? 1;
     final year = transaction['year'] ?? 2026;
@@ -273,10 +266,30 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final billData = transaction['billData'];
     final period = '${_getMonthName(month)} $year';
 
-    final statusColor = isPaid ? const Color(0xFF10B981) : AppColors.error;
+    String statusText;
+    Color statusColor;
+    IconData statusIcon;
+    bool canTap = false;
+
+    if (isPaid && isVerified) {
+      statusText = 'Lunas';
+      statusColor = const Color(0xFF10B981);
+      statusIcon = Icons.check_circle_outline;
+      canTap = false;
+    } else if (isPaid && !isVerified) {
+      statusText = 'Menunggu Verifikasi';
+      statusColor = const Color(0xFFF59E0B);
+      statusIcon = Icons.access_time_outlined;
+      canTap = false;
+    } else {
+      statusText = 'Bayar';
+      statusColor = AppColors.error;
+      statusIcon = Icons.water_drop_outlined;
+      canTap = billData != null;
+    }
 
     return InkWell(
-      onTap: !isPaid && billData != null
+      onTap: canTap
           ? () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => BillConfirmScreen(bill: billData)),
@@ -295,7 +308,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
-                Icons.water_drop_outlined,
+                statusIcon,
                 color: statusColor,
                 size: 20,
               ),
@@ -343,7 +356,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    isPaid ? 'Lunas' : 'Bayar',
+                    statusText,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,

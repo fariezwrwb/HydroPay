@@ -53,7 +53,7 @@ class BillDetailScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text('Rp ${bill['total_price'] ?? '95.000'}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0061C9))),
+                  Text('Rp ${_formatNumber(bill['price'] ?? 0)}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0061C9))),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -67,7 +67,7 @@ class BillDetailScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('ID Pelanggan', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                          Text('${bill['customer_id'] ?? '381238714'}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          Text('${bill['customer_id'] ?? '-'}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                         ],
                       )
                     ],
@@ -85,8 +85,8 @@ class BillDetailScreen extends StatelessWidget {
                 children: [
                   const Text('DETAIL PELANGGAN', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
                   const SizedBox(height: 4),
-                  Text('${bill['customer_name'] ?? 'Bambang Kurniawan'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1E293B))),
-                  Text('${bill['address'] ?? 'Jl. Mawar Indah No. 42, Jakarta'}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  Text('${bill['customer']?['name'] ?? 'Pelanggan'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1E293B))),
+                  Text('${bill['customer']?['address'] ?? '-'}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -95,14 +95,14 @@ class BillDetailScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('PERIODE TAGIHAN', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
-                          Text('${bill['month'] ?? '30 Juni 2026'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B))),
+                          Text(_getPeriod(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B))),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           const Text('JATUH TEMPO', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
-                          Text('${bill['due_date'] ?? '30 Juli 2026'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFFEF4444))),
+                          Text(_getDueDate(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFFEF4444))),
                         ],
                       ),
                     ],
@@ -130,7 +130,7 @@ class BillDetailScreen extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Text('${bill['usage'] ?? '24'}m³', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B))),
+                        Text('${bill['usage_value'] ?? 0} m³', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B))),
                       ],
                     ),
                   ),
@@ -151,7 +151,7 @@ class BillDetailScreen extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Text('${bill['comparison'] ?? '-2.5'}m³', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF22C55E))),
+                        Text('${_getComparison()} m³', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF22C55E))),
                       ],
                     ),
                   ),
@@ -164,13 +164,13 @@ class BillDetailScreen extends StatelessWidget {
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
               child: Column(
                 children: [
-                  _buildRowDetail('Biaya Pemakaian air', 'Rp ${bill['base_price'] ?? '85.000'}'),
+                  _buildRowDetail('Biaya Pemakaian air', 'Rp ${_formatNumber(bill['price'] ?? 0)}'),
                   const SizedBox(height: 12),
-                  _buildRowDetail('Biaya Administrasi', 'Rp ${bill['admin_fee'] ?? '5.000'}'),
+                  _buildRowDetail('Biaya Administrasi', 'Rp 5.000'),
                   const SizedBox(height: 12),
-                  _buildRowDetail('Biaya Materai', 'Rp ${bill['sub_fee'] ?? '3.000'}'),
+                  _buildRowDetail('Biaya Materai', 'Rp 3.000'),
                   const SizedBox(height: 12),
-                  _buildRowDetail('Biaya Denda Keterlambatan', 'Rp ${bill['penalty_fee'] ?? '2.000'}'),
+                  _buildRowDetail('Biaya Denda Keterlambatan', 'Rp 2.000'),
                 ],
               ),
             ),
@@ -196,6 +196,34 @@ class BillDetailScreen extends StatelessWidget {
     );
   }
 
+  String _getPeriod() {
+    final month = bill['month'];
+    final year = bill['year'];
+    const months = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    if (month != null && year != null) {
+      return '${months[month]} $year';
+    }
+    return 'Juni 2026';
+  }
+
+  String _getDueDate() {
+    final month = bill['month'];
+    final year = bill['year'];
+    if (month != null && year != null) {
+      return '30 ${_getMonthName(month)} $year';
+    }
+    return '30 Juli 2026';
+  }
+
+  String _getMonthName(int month) {
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    return months[month - 1];
+  }
+
+  String _getComparison() {
+    return '-2.5';
+  }
+
   Widget _buildRowDetail(String title, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -204,5 +232,17 @@ class BillDetailScreen extends StatelessWidget {
         Text(value, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13)),
       ],
     );
+  }
+
+  String _formatNumber(int number) {
+    String str = number.toString();
+    String result = '';
+    int count = 0;
+    for (int i = str.length - 1; i >= 0; i--) {
+      result = str[i] + result;
+      count++;
+      if (count % 3 == 0 && i != 0) result = '.$result';
+    }
+    return result;
   }
 }

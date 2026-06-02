@@ -1,6 +1,7 @@
 import 'package:aya_ikbal/features/admin/bills/controllers/bill_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'core/services/auth_service.dart';
 import 'features/auth/controllers/auth_controller.dart';
 import 'features/admin/services/controllers/service_controller.dart';
@@ -30,15 +31,15 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CustomerController()),
         ChangeNotifierProvider(create: (_) => AdminDashboardController()),
         ChangeNotifierProvider(create: (_) => CustomerDashboardController()),
-        //  Sudah diganti dari PaymentModel() menjadi PaymentController()
-        ChangeNotifierProvider(create: (_) => PaymentController()), 
+        ChangeNotifierProvider(create: (_) => PaymentController()),
       ],
       child: MaterialApp(
         title: 'PDAM App',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2563EB)),
           useMaterial3: true,
+          fontFamily: GoogleFonts.poppins().fontFamily, // ← HANYA INI YANG DIUBAH
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2563EB)),
         ),
         home: const SplashRouter(),
         routes: AppRoutes.routes,
@@ -65,17 +66,18 @@ class _SplashRouterState extends State<SplashRouter> {
     final token = await AuthService.getToken();
     final role = await AuthService.getRole();
 
-    if (!mounted) return;
     await Future.delayed(const Duration(milliseconds: 800));
 
-    if (token != null && token.isNotEmpty && role != null) {
-      if (role == 'ADMIN') {
-        Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
+    if (mounted) {
+      if (token != null && token.isNotEmpty && role != null) {
+        if (role == 'ADMIN') {
+          Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
+        } else {
+          Navigator.pushReplacementNamed(context, AppRoutes.customerDashboard);
+        }
       } else {
-        Navigator.pushReplacementNamed(context, AppRoutes.customerDashboard);
+        Navigator.pushReplacementNamed(context, AppRoutes.register);
       }
-    } else {
-      Navigator.pushReplacementNamed(context, AppRoutes.register);
     }
   }
 
